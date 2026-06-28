@@ -12,6 +12,8 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.svg">
 <title>M6YSM — UK Amateur Radio Tools</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
   :root {
     --bg: #f8f9fa;
@@ -73,10 +75,7 @@
   .hero { text-align: center; padding: 2.5rem 1rem 1.5rem; }
   .hero h1 { font-size: 26px; font-weight: 800; letter-spacing: -.02em; margin-bottom: .5rem; }
   .hero p { font-size: 15px; color: var(--text2); max-width: 500px; margin: 0 auto; line-height: 1.5; }
-  .hero-search { max-width: 400px; margin: 1.25rem auto 0; position: relative; }
-  .hero-search input { width: 100%; padding: 11px 14px 11px 38px; border: 2px solid var(--border); border-radius: 10px; font-size: 15px; background: var(--surface); color: var(--text); outline: none; }
-  .hero-search input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
-  .hero-search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text3); pointer-events: none; }
+
   .feature-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: .5rem; }
   .feature-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; cursor: pointer; transition: all .15s; }
   .feature-card:hover { border-color: var(--accent); box-shadow: 0 2px 12px rgba(0,0,0,.08); transform: translateY(-1px); }
@@ -234,6 +233,71 @@
     .hero p { font-size: 13px; }
     #spotter-label { font-size: 12px; }
   }
+
+  /* Contest Calendar */
+  .contest-bar { display:flex; gap:8px; margin-bottom:.75rem; flex-wrap:wrap; align-items:center; }
+  .contest-bar select { padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius); font-size:13px; background:var(--surface); color:var(--text); outline:none; cursor:pointer; }
+  .contest-bar .refresh-btn { padding:8px 16px; border-radius:var(--radius); font-size:13px; font-weight:600; cursor:pointer; border:1px solid var(--border); background:var(--surface); color:var(--text2); display:flex; align-items:center; gap:4px; }
+  .contest-bar .refresh-btn:hover { border-color:var(--accent); color:var(--accent); }
+  .contest-loading { padding:2rem;text-align:center;color:var(--text3);font-size:13px; }
+  .contest-error { padding:1rem;text-align:center;color:var(--warning-text);font-size:13px;background:var(--warning-bg);border-radius:var(--radius);margin-bottom:.75rem;display:none; }
+  .contest-empty { padding:3rem;text-align:center;color:var(--text3);font-size:14px;display:none; }
+  .contest-list { display:flex; flex-direction:column; gap:6px; }
+  .contest-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px 14px; cursor:pointer; transition:all .12s; }
+  .contest-card:hover { border-color:var(--accent); }
+  .contest-card-title { font-size:14px; font-weight:600; color:var(--text); margin-bottom:3px; }
+  .contest-card-date { font-size:12px; color:var(--text2); margin-bottom:2px; }
+  .contest-card-meta { font-size:11px; color:var(--text3); }
+  .contest-tag { font-size:10px; padding:2px 6px; border-radius:3px; background:var(--accent-bg); color:var(--accent-text); margin-left:6px; font-weight:500; vertical-align:middle; }
+
+  /* SOTA / POTA Spots */
+  .spot-bar { display:flex; gap:8px; margin-bottom:.75rem; flex-wrap:wrap; align-items:center; }
+  .spot-bar .refresh-btn { padding:8px 16px; border-radius:var(--radius); font-size:13px; font-weight:600; cursor:pointer; border:1px solid var(--border); background:var(--surface); color:var(--text2); display:flex; align-items:center; gap:4px; }
+  .spot-bar .refresh-btn:hover { border-color:var(--accent); color:var(--accent); }
+  .spot-loading { padding:2rem;text-align:center;color:var(--text3);font-size:13px; }
+  .spot-error { padding:1rem;text-align:center;color:var(--warning-text);font-size:13px;background:var(--warning-bg);border-radius:var(--radius);margin-bottom:.75rem;display:none; }
+  .spot-empty { padding:3rem;text-align:center;color:var(--text3);font-size:14px;display:none; }
+  .spot-table-wrap { background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .spot-col-type { width:50px; }
+  .spot-col-time { width:68px; }
+  .spot-col-call { width:90px; }
+  .spot-col-freq { width:68px; }
+  .spot-col-mode { width:50px; }
+  .spot-col-ref { width:72px; }
+  .spot-col-name { width:auto; }
+  .spot-td-time { font-size:11px; color:var(--text3); font-family:monospace; }
+  .spot-td-call { font-family:'SF Mono','Fira Code',monospace; font-size:13px; font-weight:600; color:var(--text); }
+  .spot-td-freq { font-family:'SF Mono','Fira Code',monospace; font-size:12px; color:var(--text2); }
+  .spot-td-ref { font-family:'SF Mono','Fira Code',monospace; font-size:12px; color:var(--text2); }
+  .spot-td-dist { font-family:'SF Mono','Fira Code',monospace; font-size:12px; color:var(--text2); }
+  .spot-type-indicator { display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font-size:10px;font-weight:700; }
+  .spot-type-indicator.pota { background:#dbeafe;color:#1e40af; }
+  .spot-type-indicator.sota { background:#fce7f3;color:#9d174d; }
+  @media (prefers-color-scheme:dark) {
+    .spot-type-indicator.pota { background:#1e3a5f;color:#93c5fd; }
+    .spot-type-indicator.sota { background:#4a1942;color:#f9a8d4; }
+  }
+
+  /* Mode filter pills */
+  .mode-pills-row { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:.75rem; }
+  .mode-pill { font-size:11px; font-weight:600; padding:5px 12px 5px 10px; border-radius:99px; border:1.5px solid var(--border); background:var(--surface); color:var(--text2); cursor:pointer; display:inline-flex; align-items:center; gap:5px; transition:all .12s; letter-spacing:.01em; }
+  .mode-pill:hover { border-color:var(--accent); color:var(--accent); }
+  .mode-pill.on { background:var(--surface); border-color:currentColor; box-shadow:0 0 0 1px currentColor; }
+  .mode-pill .mode-dot { display:inline-block; width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .mode-pill .mode-cnt { font-size:10px; opacity:.65; font-weight:500; }
+
+  @media (max-width:600px) {
+    .spot-col-type { width:36px; }
+    .spot-col-time { width:54px; }
+    .spot-col-call { width:76px; }
+    .spot-col-freq { width:56px; }
+    .spot-col-mode { width:38px; }
+    .spot-col-ref { width:60px; }
+  }
+  @media (prefers-color-scheme:dark) {
+    #spot-map { filter:invert(.9) hue-rotate(180deg); }
+    #spot-map .leaflet-control-zoom a { background:#1a1d24; color:#e9ecef; border-color:#2c3040; }
+  }
 </style>
 </head>
 <body>
@@ -241,7 +305,7 @@
 <nav class="top-nav">
   <div class="top-nav-inner">
     <div class="top-nav-brand" onclick="switchView('home')">
-      <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2"><circle cx="14" cy="14" r="12"/><path d="M14 6v4M14 14l3 3"/></svg>
+      <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2v6M10 8h8M7 12h14M4 16h20M12 16l-4 10M16 16l4 10"/><circle cx="14" cy="4" r="1.5" fill="currentColor"/></svg>
       M6YSM
     </div>
     <div class="top-nav-links">
@@ -249,6 +313,9 @@
       <button onclick="switchView('tg'); setMobileFilter('all')" id="nav-tg">Talkgroups</button>
       <button onclick="switchView('rpt')" id="nav-rpt-top">Repeaters</button>
       <button onclick="switchView('live')" id="nav-live-top">Live</button>
+      <button onclick="switchView('nets')" id="nav-nets-top">Nets</button>
+      <button onclick="switchView('contest')" id="nav-contest-top">Contests</button>
+      <button onclick="switchView('spot')" id="nav-spot-top">Spots</button>
       <button class="install-btn" id="install-btn">Install</button>
       <span class="live-chip" id="live-chip">LIVE</span>
     </div>
@@ -260,29 +327,25 @@
   <div class="hero">
     <h1>UK Amateur Radio Tools</h1>
     <p>DMR talk groups, repeater finder, and more — built for the UK amateur radio community by M6YSM.</p>
-    <div class="hero-search">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <input type="search" id="home-q" placeholder="Search talk groups…" oninput="homeSearch()" autocomplete="off" autocorrect="off" spellcheck="false">
-    </div>
   </div>
 
   <div class="feature-grid">
-    <div class="feature-card" onclick="switchView('tg'); setMobileFilter('all')">
-      <div class="feature-card-icon" style="background:#dbeafe;color:#1e40af">📞</div>
-      <h3>DMR Talk Groups</h3>
-      <p>Browse UK talk groups across Brandmeister, TGIF, FreeSTAR and FreeDMR. Search, filter by network, and save favourites.</p>
-    </div>
     <div class="feature-card" onclick="switchView('rpt')">
       <div class="feature-card-icon" style="background:#dcfce7;color:#166534">📡</div>
       <h3>Repeater Finder</h3>
       <p>Find all UK repeaters (FM, DMR, D-Star, Fusion, NXDN, P25, TETRA) near any postcode, town, or your GPS location.</p>
+    </div>
+    <div class="feature-card" onclick="switchView('tg'); setMobileFilter('all')">
+      <div class="feature-card-icon" style="background:#dbeafe;color:#1e40af">📞</div>
+      <h3>DMR Talk Groups</h3>
+      <p>Browse UK talk groups across Brandmeister, TGIF, FreeSTAR and FreeDMR. Search, filter by network, and save favourites.</p>
     </div>
     <div class="feature-card" onclick="switchView('live')">
       <div class="feature-card-icon" style="background:#fce7f3;color:#9d174d">🔴</div>
       <h3>Live Activity</h3>
       <p>Watch live DMR transmissions across Brandmeister, TGIF, FreeSTAR and FreeDMR networks in real time.</p>
     </div>
-    <div class="feature-card" id="home-net-tile" onclick="switchView('live')">
+    <div class="feature-card" id="home-net-tile" onclick="switchView('nets')">
       <div class="feature-card-icon" style="background:#fff3cd;color:#856404">🌐</div>
       <h3 id="net-tile-heading">Live Net Now</h3>
       <p id="net-tile-call" style="font-weight:600;font-family:monospace;font-size:15px">—</p>
@@ -380,11 +443,7 @@
     </div>
   </div>
 
-  <div class="mode-pills">
-    <label><input type="radio" name="mode-filter" value="all" checked><span class="mode-label">All modes</span></label>
-    <label><input type="radio" name="mode-filter" value="fm"><span class="mode-label">FM</span></label>
-    <label><input type="radio" name="mode-filter" value="dmr"><span class="mode-label">DMR</span></label>
-  </div>
+  <div class="mode-pills" id="rpt-mode-pills"></div>
 
   <div id="rpt-results">
     <div class="empty" id="rpt-empty">Enter a location above to find nearby repeaters.</div>
@@ -454,6 +513,80 @@
   </div>
 </div>
 
+<div id="nets-view" class="view hidden">
+  <h2 style="margin:0 0 .75rem;font-size:18px">Upcoming Nets</h2>
+  <div id="nets-empty" style="display:none;text-align:center;padding:2rem;color:var(--text3)">No nets scheduled</div>
+  <div style="overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse">
+      <thead>
+        <tr style="font-size:12px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em">
+          <th style="text-align:left;padding:8px 6px">Net</th>
+          <th style="text-align:left;padding:8px 6px">TG</th>
+          <th style="text-align:left;padding:8px 6px">Day</th>
+          <th style="text-align:left;padding:8px 6px">Time</th>
+          <th style="text-align:left;padding:8px 6px">Network</th>
+        </tr>
+      </thead>
+      <tbody id="nets-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Contest Calendar view -->
+<div id="contest-view" class="view hidden">
+  <h2 style="margin:0 0 .75rem;font-size:18px">UK Contest Calendar</h2>
+  <div class="contest-bar">
+    <select id="contest-filter-select" onchange="setContestFilter(this.value)">
+      <option value="uk">UK contests</option>
+      <option value="all">All contests</option>
+    </select>
+
+    <button class="refresh-btn" onclick="fetchContests()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      Refresh
+    </button>
+  </div>
+  <div class="mode-pills" id="contest-mode-pills"></div>
+  <div class="contest-error" id="contest-error">Could not load contest calendar. Check your connection.</div>
+  <div class="contest-loading" id="contest-loading">Loading contest calendar…</div>
+  <div class="contest-empty" id="contest-empty">No UK contests listed this week.</div>
+  <div id="contest-count" style="font-size:12px;color:var(--text3);margin-bottom:.5rem"></div>
+  <div class="contest-list" id="contest-list"></div>
+</div>
+
+<!-- SOTA / POTA view -->
+<div id="spot-view" class="view hidden">
+  <h2 style="margin:0 0 .75rem;font-size:18px">SOTA &amp; POTA — UK Spots</h2>
+  <div class="spot-bar">
+    <button class="refresh-btn" onclick="fetchSpots()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      Refresh
+    </button>
+  </div>
+  <div class="mode-pills-row" id="mode-pills"></div>
+  <div class="spot-error" id="spot-error">Could not load spot data. Check your connection.</div>
+  <div class="spot-loading" id="spot-loading">Loading spot data…</div>
+  <div class="spot-empty" id="spot-empty">No SOTA/POTA spots found near you.</div>
+  <div id="spot-count" style="font-size:12px;color:var(--text3);margin-bottom:.5rem"></div>
+  <div class="spot-table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th class="spot-col-type">Type</th>
+          <th class="spot-col-time">Time</th>
+          <th class="spot-col-call">Callsign</th>
+          <th class="spot-col-freq">Freq</th>
+          <th class="spot-col-mode">Mode</th>
+          <th class="spot-col-ref">Ref</th>
+          <th class="spot-col-name">Name</th>
+        </tr>
+      </thead>
+      <tbody id="spot-tbody"></tbody>
+    </table>
+  </div>
+  <div id="spot-map" style="height:280px;margin-top:.75rem;border-radius:10px;overflow:hidden;border:1px solid var(--border);display:none"></div>
+</div>
+
 </main>
 
 <!-- Spotter audio player bar -->
@@ -482,7 +615,19 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
     Live
   </button>
-  <button onclick="switchView('tg'); setMobileFilter('fav')" id="nav-fav-bot">
+    <button onclick="switchView('nets')" id="nav-nets-bot">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v6M8 8h8M5 12h14M10 12l-4 8M14 12l4 8"/><circle cx="12" cy="4.5" r="1"/></svg>
+      Nets
+    </button>
+    <button onclick="switchView('contest')" id="nav-contest-bot">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h10M7 16h6"/></svg>
+      Contests
+    </button>
+    <button onclick="switchView('spot')" id="nav-spot-bot">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2"/></svg>
+      Spots
+    </button>
+    <button onclick="switchView('tg'); setMobileFilter('fav')" id="nav-fav-bot">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
     Favs
   </button>
@@ -514,6 +659,8 @@ const STATIC = [
   {tg:"23520",name:"Wales",net:"FreeDMR"},
   {tg:"23530",name:"Scotland",net:"FreeDMR"},
   {tg:"23540",name:"Northern Ireland",net:"FreeDMR"},
+  {tg:"23556",name:"UK Wide Multimode",net:"FreeDMR",hasNet:true,netInfo:"DVSPh Coast to Coast Net — Saturday 20:00 local · Also via D-Star XLX600D, YSF, AllStar 53937"},
+  {tg:"950",name:"SWC (South West Cluster)",net:"FreeDMR",hasNet:true,netInfo:"SWC 950 Net — Tuesday 20:00 local · Weekly net hosted by Graham G1ZTJ via SWC repeaters"},
 ];
 
 const BM_FALLBACK = [
@@ -524,7 +671,7 @@ const BM_FALLBACK = [
   {tg:"2353",name:"Chat 3",net:"Brandmeister"},
   {tg:"2354",name:"Ireland",net:"Brandmeister"},
   {tg:"2355",name:"Scotland",net:"Brandmeister"},
-  {tg:"2356",name:"Wales",net:"Brandmeister"},
+  {tg:"2356",name:"Wales",net:"Brandmeister",hasNet:true,netInfo:"Wales Ragchew Net — Saturday 19:30 local · Hosted by MW7CCS, all welcome, via DMR/C4FM/D-Star XLX042D"},
   {tg:"2357",name:"Isle of Man",net:"Brandmeister"},
   {tg:"2358",name:"London",net:"Brandmeister"},
   {tg:"2359",name:"Kernow",net:"Brandmeister"},
@@ -541,14 +688,14 @@ const BM_FALLBACK = [
   {tg:"23520",name:"N.West",net:"Brandmeister"},
   {tg:"23526",name:"Hubnet UK",net:"Brandmeister"},
   {tg:"23530",name:"Yorkshire",net:"Brandmeister",hasNet:true,netInfo:"Sunday Night DMR Net — Sunday 20:00 local · Hosted by HFDXARC"},
-  {tg:"23531",name:"RAYNET UK",net:"Brandmeister"},
+  {tg:"23531",name:"RAYNET UK",net:"Brandmeister",hasNet:true,netInfo:"RAYNET-UK Weekly Activity Net — Sunday 16:00 local · Open to all amateurs, equipment testing and message handling"},
   {tg:"23540",name:"Ireland Chat",net:"Brandmeister"},
   {tg:"23525",name:"Furness ARS Net",net:"Brandmeister",hasNet:true,netInfo:"Furness Amateur Radio Society Net — Friday 19:00 local · North West England"},
   {tg:"23550",name:"Scotland Chat",net:"Brandmeister",hasNet:true,netInfo:"Mid Lanarkshire ARS Net — Wednesday 20:00 local · Scotland Chat TG"},
   {tg:"235419",name:"DMR Packet Net",net:"Brandmeister",hasNet:true,netInfo:"DMR Packet Net — Tuesday 20:00 local · Packet radio discussion, Scotland region"},
   {tg:"23557",name:"Scotland East",net:"Brandmeister"},
   {tg:"23558",name:"Scotland Highland & Islands",net:"Brandmeister"},
-  {tg:"23559",name:"Scotland West",net:"Brandmeister"},
+  {tg:"23559",name:"Scotland West",net:"Brandmeister",hasNet:true,netInfo:"GB2RS News Relay — Sunday 10:00 UTC · RSGB news broadcast relayed via DMR"},
   {tg:"23560",name:"North East",net:"Brandmeister"},
   {tg:"23562",name:"M62 Corridor",net:"Brandmeister"},
   {tg:"23570",name:"Wales Chat",net:"Brandmeister"},
@@ -556,6 +703,7 @@ const BM_FALLBACK = [
   {tg:"23580",name:"West Midland",net:"Brandmeister"},
   {tg:"23590",name:"East Midlands",net:"Brandmeister"},
   {tg:"27247",name:"NWAG (North West Amateur Group)",net:"Brandmeister",hasNet:true,netInfo:"NWAG Early Evening Net — Daily 18:30 local · North West Allstar Group hub"},
+  {tg:"91",name:"World Wide",net:"Brandmeister"},
   {tg:"235907",name:"JOTA UK",net:"Brandmeister"},
 ];
 
@@ -650,14 +798,6 @@ function finish() {
   }
 }
 
-function homeSearch() {
-  const q = document.getElementById('home-q').value.trim();
-  if (q) {
-    switchView('tg');
-    document.getElementById('q').value = q;
-    render();
-  }
-}
 
 function buildPills() {
   const counts = {};
@@ -754,6 +894,8 @@ const MODE_LABELS = { A:'FM', D:'D-Star', F:'Fusion', M:'DMR', N:'NXDN', P:'P25'
 let rptData = [];        // cached repeater objects
 let currentView = 'home';  // 'home', 'tg', or 'rpt'
 let rptUserPos = null;   // {lat, lng, name}
+let rptModeFilter = 'all';
+const RPT_MODE_COLORS = { fm:'#22c55e', dmr:'#3b82f6', dst:'#a855f7', fsn:'#ec4899', nxdn:'#06b6d4', p25:'#f97316', tetra:'#ef4444' };
 
 function switchView(v) {
   const prev = currentView;
@@ -762,21 +904,27 @@ function switchView(v) {
   document.getElementById('tg-view').classList.toggle('hidden', v !== 'tg');
   document.getElementById('rpt-view').classList.toggle('hidden', v !== 'rpt');
   document.getElementById('live-view').classList.toggle('hidden', v !== 'live');
+  document.getElementById('nets-view').classList.toggle('hidden', v !== 'nets');
+  document.getElementById('contest-view').classList.toggle('hidden', v !== 'contest');
+  document.getElementById('spot-view').classList.toggle('hidden', v !== 'spot');
   // Top nav
-  ['home','tg','rpt-top','live-top'].forEach(id => {
+  ['home','tg','rpt-top','live-top','nets-top','contest-top','spot-top'].forEach(id => {
     const el = document.getElementById('nav-' + id);
-    if (el) el.classList.toggle('on', v === id || (v === 'tg' && id === 'tg') || (v === 'rpt' && id === 'rpt-top') || (v === 'live' && id === 'live-top'));
+    if (el) el.classList.toggle('on', v === id || (v === 'tg' && id === 'tg') || (v === 'rpt' && id === 'rpt-top') || (v === 'live' && id === 'live-top') || (v === 'nets' && id === 'nets-top') || (v === 'contest' && id === 'contest-top') || (v === 'spot' && id === 'spot-top'));
   });
   // Bottom nav
-  ['home-bot','tg-view','rpt-bot','live-bot','fav-bot'].forEach(id => {
+  ['home-bot','tg-view','rpt-bot','live-bot','nets-bot','contest-bot','spot-bot','fav-bot'].forEach(id => {
     const el = document.getElementById('nav-' + id);
-    if (el) el.classList.toggle('on', v === id || (v === 'tg' && id === 'tg-view') || (v === 'rpt' && id === 'rpt-bot') || (v === 'live' && id === 'live-bot'));
+    if (el) el.classList.toggle('on', v === id || (v === 'tg' && id === 'tg-view') || (v === 'rpt' && id === 'rpt-bot') || (v === 'live' && id === 'live-bot') || (v === 'nets' && id === 'nets-bot') || (v === 'contest' && id === 'contest-bot') || (v === 'spot' && id === 'spot-bot'));
   });
   if (v === 'rpt' && rptData.length === 0) {
     loadRepeaters();
   }
   if (v === 'tg') render();
   if (v === 'live') { if (prev !== 'live') connectLive(); } else { disconnectLive(); }
+  if (v === 'nets') renderNets();
+  if (v === 'contest' && allContests.length === 0) fetchContests();
+  if (v === 'spot' && spotData.length === 0) fetchSpots();
 }
 
 function mToLatLng(loc) {
@@ -807,7 +955,9 @@ function mToLatLng(loc) {
 
 function modeDisplay(mc) {
   if (!mc || !mc.length) return [{label:'?',cls:'md-?'}];
-  return mc.map(m => ({ label: MODE_LABELS[m] || m, cls: 'md-' + m }));
+  const codes = Array.from(mc).filter(s => typeof s === 'string' && /^[A-Z]/.test(s)).map(s => s[0]);
+  if (!codes.length) return [{label:'?',cls:'md-?'}];
+  return codes.map(m => ({ label: MODE_LABELS[m] || m, cls: 'md-' + m }));
 }
 
 async function loadRepeaters() {
@@ -818,11 +968,13 @@ async function loadRepeaters() {
   if (cached && Array.isArray(cached) && cached.length > 100) {
     rptData = cached;
     rptStatus.textContent = rptData.length + ' repeaters loaded';
+    buildRptModePills();
     return;
   }
   if (!navigator.onLine && cached) {
     rptData = cached;
     rptStatus.textContent = rptData.length + ' repeaters (offline)';
+    buildRptModePills();
     return;
   }
   const all = [];
@@ -842,7 +994,6 @@ async function loadRepeaters() {
       all.push({
         cs: d.repeater, town: d.town, band: band,
         tx: d.tx, rx: d.rx, ctcss: d.ctcss,
-        cc: d.ctcss > 0 ? d.ctcss : 0,
         type: d.type, modeCodes: d.modeCodes,
         status: d.status, locator: d.locator,
         lat: ll.lat, lng: ll.lng, keeper: d.keeperCallsign,
@@ -853,9 +1004,13 @@ async function loadRepeaters() {
       });
     });
   });
+  // Manual DMR colour code overrides
+  const CC_OVERRIDES = { 'GB7SR':'2' };
+  all.forEach(rpt => { if (CC_OVERRIDES[rpt.cs]) rpt.dmrcc = CC_OVERRIDES[rpt.cs]; });
   rptData = all;
   try { localStorage.setItem('dmr-rpt-cache', JSON.stringify(all)); } catch(e) {}
   rptStatus.textContent = all.length + ' repeaters loaded';
+  buildRptModePills();
 }
 
 function haversine(lat1, lng1, lat2, lng2) {
@@ -917,18 +1072,16 @@ function getGPS() {
   );
 }
 
+const RPT_MODE_CODES = { fm:'A', dmr:'M', dst:'D', fsn:'F', nxdn:'N', p25:'P', tetra:'E' };
+
 function renderRepeaters(centerLat, centerLng) {
   const radius = parseInt(document.getElementById('radius-select').value) || 15;
-  const modeFilter = document.querySelector('input[name="mode-filter"]:checked');
-  const mode = modeFilter ? modeFilter.value : 'all';
-
   let filtered = rptData.filter(r => {
     if (r.status !== 'OPERATIONAL') return false;
     const d = haversine(centerLat, centerLng, r.lat, r.lng);
     r._dist = d;
     if (d > radius) return false;
-    if (mode === 'fm' && !r.isFM) return false;
-    if (mode === 'dmr' && !r.isDMR) return false;
+    if (rptModeFilter !== 'all' && (!r.modeCodes || !r.modeCodes.some(c => typeof c === 'string' && c.startsWith(RPT_MODE_CODES[rptModeFilter])))) return false;
     return true;
   });
 
@@ -952,12 +1105,13 @@ function renderRepeaters(centerLat, centerLng) {
     const modes = modeDisplay(r.modeCodes);
     const modeHtml = modes.map(m => '<span class="badge ' + m.cls + '">' + m.label + '</span>').join(' ');
     const statusColor = r.status === 'OPERATIONAL' ? '#22c55e' : r.status === 'REDUCED OUTPUT' ? '#f59e0b' : '#6c757d';
+    const cc = r.dmrcc ? 'CC ' + r.dmrcc : '';
     return '<tr>' +
       '<td class="rpt-col-dist"><span class="rpt-td-dist">' + r._dist.toFixed(1) + 'mi</span></td>' +
       '<td class="rpt-col-cs"><span class="rpt-td-cs">' + r.cs + '</span></td>' +
       '<td class="rpt-col-freq"><span class="rpt-td-freq">TX ' + r.freqTx + '</span>' + (r.freqRx ? '<br><span class="rpt-td-freq" style="color:var(--text3)">RX ' + r.freqRx + '</span>' : '') + '<br><span style="font-size:10px;color:var(--text3)">' + r.band + (r.ctcss > 0 ? ' · CT ' + r.ctcss : '') + '</span></td>' +
       '<td class="rpt-col-city"><span class="rpt-city">' + r.town + '</span></td>' +
-      '<td class="rpt-col-info">' + modeHtml + ' <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:' + statusColor + ';vertical-align:middle" title="' + r.status + '"></span></td>' +
+      '<td class="rpt-col-info">' + modeHtml + (cc ? ' <span style="font-size:10px;color:var(--text3)">' + cc + '</span>' : '') + ' <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:' + statusColor + ';vertical-align:middle" title="' + r.status + '"></span></td>' +
       '</tr>';
   }).join('');
 }
@@ -966,12 +1120,36 @@ function onRadiusChange() {
   if (rptUserPos) renderRepeaters(rptUserPos.lat, rptUserPos.lng);
 }
 
+function setRptModeFilter(m) {
+  rptModeFilter = m;
+  buildRptModePills();
+  if (rptUserPos) renderRepeaters(rptUserPos.lat, rptUserPos.lng);
+}
+
+function buildRptModePills() {
+  const container = document.getElementById('rpt-mode-pills');
+  if (!container) return;
+  const counts = { all: rptData.length };
+  const rptModes = ['fm','dmr','dst','fsn','nxdn','p25','tetra'];
+  rptData.forEach(r => {
+    rptModes.forEach(m => {
+      if (r.modeCodes && r.modeCodes.some(c => typeof c === 'string' && c.startsWith(RPT_MODE_CODES[m]))) counts[m] = (counts[m] || 0) + 1;
+    });
+  });
+  const modes = ['all', ...rptModes];
+  container.innerHTML = modes.map(m => {
+    const cnt = counts[m] || 0;
+    if (m !== 'all' && !cnt) return '';
+    const color = m === 'all' ? 'var(--accent)' : RPT_MODE_COLORS[m];
+    return '<button class="mode-pill' + (rptModeFilter === m ? ' on' : '') + '" onclick="setRptModeFilter(\'' + m + '\')" style="' + (rptModeFilter === m ? 'color:' + color : '') + '">' +
+      (m === 'all' ? '' : '<span class="mode-dot" style="background:' + color + '"></span>') +
+      (m === 'all' ? 'All' : MODE_LABELS[RPT_MODE_CODES[m]]) +
+      ' <span class="mode-cnt">' + cnt + '</span></button>';
+  }).filter(Boolean).join('');
+}
+
 // Enter key handlers
 document.addEventListener('DOMContentLoaded', () => {
-  const homeQ = document.getElementById('home-q');
-  if (homeQ) {
-    homeQ.addEventListener('keydown', e => { if (e.key === 'Enter') homeSearch(); });
-  }
   const locQ = document.getElementById('loc-q');
   if (locQ) {
     locQ.addEventListener('keydown', e => { if (e.key === 'Enter') searchLocation(); });
@@ -980,10 +1158,9 @@ document.addEventListener('DOMContentLoaded', () => {
   if (radiusSel) {
     radiusSel.addEventListener('change', onRadiusChange);
   }
-  // Mode radio buttons
-  document.querySelectorAll('input[name="mode-filter"]').forEach(el => {
-    el.addEventListener('change', () => { if (rptUserPos) renderRepeaters(rptUserPos.lat, rptUserPos.lng); });
-  });
+  buildRptModePills();
+  // Start Brandmeister MQTT early so the home tile gets live data
+  if (typeof io !== 'undefined') connectBM();
   // Refresh home net tile periodically
   setInterval(updateHomeNetTile, 2000);
 });
@@ -1285,15 +1462,53 @@ function addEntry(e) {
 
 // Regular net schedule (day: 0=Sun, 1=Mon…6=Sat)
 const netSchedule = [
-  { day: 1, hour: 20, min: 0, tg: '2350', name: 'UK General Net', net: 'Brandmeister' },
-  { day: 2, hour: 20, min: 0, tg: '2350', name: 'UK General Net', net: 'Brandmeister' },
-  { day: 3, hour: 20, min: 0, tg: '2350', name: 'UK General Net', net: 'Brandmeister' },
-  { day: 4, hour: 20, min: 0, tg: '2350', name: 'UK General Net', net: 'Brandmeister' },
-  { day: 5, hour: 20, min: 0, tg: '2350', name: 'UK General Net', net: 'Brandmeister' },
-  { day: 6, hour: 20, min: 0, tg: '2350', name: 'UK General Net', net: 'Brandmeister' },
-  { day: 0, hour: 20, min: 0, tg: '2350', name: 'UK General Net', net: 'Brandmeister' },
-  { day: 6, hour: 19, min: 0, tg: '2353', name: 'UK DX Net', net: 'Brandmeister' },
+  // --- Daily ---
+  { day: 0, hour: 17, min: 30, tg: '27247', name: 'NWAG Early Evening Net', net: 'Brandmeister' },
+  { day: 1, hour: 17, min: 30, tg: '27247', name: 'NWAG Early Evening Net', net: 'Brandmeister' },
+  { day: 2, hour: 17, min: 30, tg: '27247', name: 'NWAG Early Evening Net', net: 'Brandmeister' },
+  { day: 3, hour: 17, min: 30, tg: '27247', name: 'NWAG Early Evening Net', net: 'Brandmeister' },
+  { day: 4, hour: 17, min: 30, tg: '27247', name: 'NWAG Early Evening Net', net: 'Brandmeister' },
+  { day: 5, hour: 17, min: 30, tg: '27247', name: 'NWAG Early Evening Net', net: 'Brandmeister' },
+  { day: 6, hour: 17, min: 30, tg: '27247', name: 'NWAG Early Evening Net', net: 'Brandmeister' },
+
+  // --- Sunday ---
+  { day: 0, hour: 10, min: 0, tg: '23559', name: 'GB2RS News Relay', net: 'Brandmeister' },
+  { day: 0, hour: 15, min: 0, tg: '23531', name: 'RAYNET-UK Weekly Activity Net', net: 'Brandmeister' },
+  { day: 0, hour: 18, min: 30, tg: '235', name: '235 Alive Net', net: 'Brandmeister' },
   { day: 0, hour: 19, min: 0, tg: '2353', name: 'UK DX Net', net: 'Brandmeister' },
+  { day: 0, hour: 19, min: 0, tg: '23516', name: 'Jersey ARS DMR Net', net: 'Brandmeister' },
+  { day: 0, hour: 19, min: 0, tg: '23455', name: 'UK Hubnet', net: 'TGIF' },
+  { day: 0, hour: 19, min: 0, tg: '2351', name: 'CQ-UK Net', net: 'Brandmeister' },
+  { day: 0, hour: 19, min: 0, tg: '23530', name: 'Sunday Night DMR Net', net: 'Brandmeister' },
+  { day: 0, hour: 20, min: 0, tg: '2350', name: 'UK General Net', net: 'Brandmeister' },
+
+  // --- Monday ---
+  { day: 1, hour: 20, min: 0, tg: '2350', name: 'UK General Net', net: 'Brandmeister' },
+
+  // --- Tuesday ---
+  { day: 2, hour: 19, min: 0, tg: '950', name: 'SWC 950 Net', net: 'FreeDMR' },
+  { day: 2, hour: 19, min: 0, tg: '235419', name: 'DMR Packet Net', net: 'Brandmeister' },
+  { day: 2, hour: 20, min: 0, tg: '2350', name: 'UK General Net', net: 'Brandmeister' },
+
+  // --- Wednesday ---
+  { day: 3, hour: 19, min: 0, tg: '23550', name: 'Mid Lanarkshire ARS Net', net: 'Brandmeister' },
+  { day: 3, hour: 20, min: 0, tg: '2350', name: 'UK General Net', net: 'Brandmeister' },
+
+  // --- Thursday ---
+  { day: 4, hour: 19, min: 0, tg: '23515', name: 'Guernsey ARS DMR Net', net: 'Brandmeister' },
+  { day: 4, hour: 19, min: 0, tg: '1938', name: 'Bury Radio Society Net', net: 'TGIF' },
+  { day: 4, hour: 20, min: 0, tg: '2350', name: 'UK General Net', net: 'Brandmeister' },
+
+  // --- Friday ---
+  { day: 5, hour: 18, min: 0, tg: '23525', name: 'Furness ARS Net', net: 'Brandmeister' },
+  { day: 5, hour: 20, min: 0, tg: '2350', name: 'UK General Net', net: 'Brandmeister' },
+
+  // --- Saturday ---
+  { day: 6, hour: 16, min: 0, tg: '91', name: 'World Wide Check In Net', net: 'Brandmeister' },
+  { day: 6, hour: 18, min: 30, tg: '2356', name: 'Wales Ragchew Net', net: 'Brandmeister' },
+  { day: 6, hour: 19, min: 0, tg: '2353', name: 'UK DX Net', net: 'Brandmeister' },
+  { day: 6, hour: 19, min: 0, tg: '23556', name: 'DVSPh Coast to Coast Net', net: 'FreeDMR' },
+  { day: 6, hour: 20, min: 0, tg: '2350', name: 'UK General Net', net: 'Brandmeister' },
 ];
 function getNextNet() {
   const n = new Date();
@@ -1316,46 +1531,75 @@ function getNextNet() {
 }
 
 function updateHomeNetTile() {
-  const now = Date.now();
-  const active = liveEntries.find(e => e._sid && (now - e.time) < 35000 && e.net === 'Brandmeister');
+  const next = getNextNet();
   const call = document.getElementById('net-tile-call');
   const tg = document.getElementById('net-tile-tg');
   const st = document.getElementById('net-tile-status');
-  const card = document.getElementById('home-net-tile');
   const heading = document.getElementById('net-tile-heading');
-  if (active) {
-    heading.textContent = 'Live Net Now';
-    const s = Math.round((now - active.time) / 1000);
-    const dur = active.duration ? (active.duration < 60 ? active.duration+'s' : Math.floor(active.duration/60)+'m') : (s < 60 ? s+'s' : Math.floor(s/60)+'m');
-    call.textContent = active.callsign;
-    tg.textContent = 'TG ' + active.tg + (active.tgName ? ' · ' + active.tgName : '');
-    st.textContent = dur + ' on Brandmeister';
-    card.style.display = 'block';
+  if (next) {
+    heading.textContent = 'Next Net';
+    const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const now = new Date();
+    const nextDate = new Date();
+    const diffDays = (next.day - now.getDay() + 7) % 7;
+    nextDate.setDate(now.getDate() + diffDays);
+    nextDate.setHours(next.hour, next.min, 0, 0);
+    if (nextDate <= now) nextDate.setDate(nextDate.getDate() + 7);
+    const h = String(next.hour).padStart(2,'0');
+    const m = String(next.min).padStart(2,'0');
+    call.textContent = next.name;
+    tg.textContent = 'TG ' + next.tg + ' · ' + next.net;
+    st.textContent = (diffDays === 0 ? 'Today' : diffDays === 1 ? 'Tomorrow' : dayNames[next.day]) + ' ' + h + ':' + m + ' UTC';
   } else {
-    const next = getNextNet();
-    if (next) {
-      heading.textContent = 'Next Net';
-      const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-      const now = new Date();
-      const nextDate = new Date();
-      const diffDays = (next.day - now.getDay() + 7) % 7;
-      nextDate.setDate(now.getDate() + diffDays);
-      nextDate.setHours(next.hour, next.min, 0, 0);
-      if (nextDate <= now) nextDate.setDate(nextDate.getDate() + 7);
-      const h = String(next.hour).padStart(2,'0');
-      const m = String(next.min).padStart(2,'0');
-      call.textContent = next.name;
-      tg.textContent = 'TG ' + next.tg + ' · ' + next.net;
-      st.textContent = (diffDays === 0 ? 'Today' : diffDays === 1 ? 'Tomorrow' : dayNames[next.day]) + ' ' + h + ':' + m + ' UTC';
-    } else {
-      heading.textContent = 'Nets';
-      call.textContent = '—';
-      tg.textContent = '';
-      st.textContent = 'No nets scheduled';
-    }
-    card.style.display = 'block';
+    heading.textContent = 'Nets';
+    call.textContent = '—';
+    tg.textContent = '';
+    st.textContent = 'No nets scheduled';
   }
 }
+
+function renderNets() {
+  const shortDay = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const today = now.getDay();
+  const upcoming = netSchedule.map(s => {
+    let d;
+    if (s.day === today && s.hour * 60 + s.min > nowMin) {
+      d = new Date(now);
+      d.setHours(s.hour, s.min, 0, 0);
+    } else {
+      let days = (s.day - today + 7) % 7;
+      if (days === 0) days = 7;
+      d = new Date(now);
+      d.setDate(now.getDate() + days);
+      d.setHours(s.hour, s.min, 0, 0);
+    }
+    return { ...s, date: d };
+  });
+  upcoming.sort((a, b) => a.date - b.date);
+  const tbody = document.getElementById('nets-tbody');
+  const empty = document.getElementById('nets-empty');
+  if (!upcoming.length) {
+    tbody.innerHTML = '';
+    if (empty) empty.style.display = 'block';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+  tbody.innerHTML = upcoming.map(s => {
+    const isNext = s === upcoming[0];
+    const dayStr = s.date.toDateString() === now.toDateString() ? 'Today' : shortDay[s.day];
+    const h = String(s.hour).padStart(2,'0');
+    const m = String(s.min).padStart(2,'0');
+    return '<tr style="' + (isNext ? 'background:var(--accent-bg);font-weight:600' : '') + '">' +
+      '<td style="padding:8px 6px;font-size:13px">' + s.name + '</td>' +
+      '<td style="padding:8px 6px;font-size:13px;font-family:monospace">TG ' + s.tg + '</td>' +
+      '<td style="padding:8px 6px;font-size:13px">' + dayStr + '</td>' +
+      '<td style="padding:8px 6px;font-size:13px;font-family:monospace">' + h + ':' + m + '</td>' +
+      '<td style="padding:8px 6px;font-size:13px"><span class="badge ' + ({Brandmeister:'bm',TGIF:'tgif',FreeSTAR:'fs',FreeDMR:'fd'}[s.net] || 'bm') + '">' + s.net + '</span></td></tr>';
+  }).join('');
+}
+
 
 function setNetStat(net, color, text) {
   const id = {
@@ -1637,6 +1881,378 @@ function stopListening() {
   if (audioCtx) { audioCtx.close(); audioCtx = null; }
   spotterTG = null;
   spotterCall = '';
+}
+
+/* ---- Contest Calendar (WA7BNM RSS) ---- */
+const UK_CONTEST_TERMS = ['rsgb','ukac','80m cc','40m cc','2m fmac','6m ft8','hf cc','uk microwave','uk-ei','nrau','commonwealth','british','england','scotland','wales','ireland','cdxc','fists','gb'];
+let allContests = [];
+let contestViewFilter = 'uk';
+let contestModeFilter = 'all';
+
+function setContestFilter(v) { contestViewFilter = v; renderContests(); }
+
+const CONTEST_MODE_COLORS = { cw:'#14b8a6', ssb:'#3b82f6', fm:'#22c55e', ft8:'#a855f7', ft4:'#eab308', dig:'#f97316', mixed:'#6b7280' };
+
+function getContestMode(title, desc) {
+  const u = (title + ' ' + (desc || '')).toUpperCase();
+  if (u.includes(', CW') || u.includes('(CW)') || (u.includes('CW') && (u.includes('TEST') || u.includes('CHAMP')))) return 'cw';
+  if (u.includes(', SSB') || u.includes('(SSB)') || u.includes('PHONE')) return 'ssb';
+  if (u.includes(', FM') || u.includes('(FM)')) return 'fm';
+  if (u.includes('FT4')) return 'ft4';
+  if (u.includes('FT8')) return 'ft8';
+  if (u.includes('DIG') || u.includes('DATA') || u.includes('RTTY') || u.includes('PSK')) return 'dig';
+  return 'mixed';
+}
+
+function setContestModeFilter(m) { contestModeFilter = m; renderContests(); }
+
+function buildContestModePills(filtered) {
+  const container = document.getElementById('contest-mode-pills');
+  if (!container) return;
+  const src = filtered || allContests;
+  const counts = { all: src.length };
+  const cModes = ['cw','ssb','fm','ft8','ft4','dig','mixed'];
+  src.forEach(c => {
+    const m = getContestMode(c.title, c.desc);
+    counts[m] = (counts[m] || 0) + 1;
+  });
+  const modes = ['all', ...cModes];
+  container.innerHTML = modes.map(m => {
+    const cnt = counts[m] || 0;
+    if (m !== 'all' && !cnt) return '';
+    const color = m === 'all' ? 'var(--accent)' : CONTEST_MODE_COLORS[m];
+    const label = m === 'all' ? 'All' : m.charAt(0).toUpperCase() + m.slice(1);
+    return '<button class="mode-pill' + (contestModeFilter === m ? ' on' : '') + '" onclick="setContestModeFilter(\'' + m + '\')" style="' + (contestModeFilter === m ? 'color:' + color : '') + '">' +
+      (m === 'all' ? '' : '<span class="mode-dot" style="background:' + color + '"></span>') +
+      label + ' <span class="mode-cnt">' + cnt + '</span></button>';
+  }).filter(Boolean).join('');
+}
+
+async function fetchContests() {
+  const loading = document.getElementById('contest-loading');
+  const error = document.getElementById('contest-error');
+  const list = document.getElementById('contest-list');
+  loading.style.display = 'block'; error.style.display = 'none'; list.innerHTML = '';
+  let items = null;
+  const now = new Date();
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const PROXIES = ['https://corsproxy.io/?url=', 'https://api.allorigins.win/raw?url='];
+  async function proxyFetch(url) {
+    for (const p of PROXIES) {
+      try {
+        const c = new AbortController(); const t = setTimeout(() => c.abort(), 8000);
+        const r = await fetch(p + encodeURIComponent(url), { signal: c.signal });
+        clearTimeout(t);
+        if (r.ok) return await r.text();
+      } catch(e) { clearTimeout(e._timeout); }
+    }
+    return null;
+  }
+  // Parse five-week calendar HTML (most comprehensive source - 150+ entries)
+  async function fetchFiveWeek() {
+    const html = await proxyFetch('https://www.contestcalendar.com/fivewkcal.php');
+    if (!html) return null;
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const rows = doc.querySelectorAll('tr');
+    const entries = [];
+    for (const row of rows) {
+      const cells = row.querySelectorAll('td');
+      if (cells.length < 2) continue;
+      if (cells[0].hasAttribute('colspan') && cells[0].querySelector('strong')) continue;
+      let link = cells[0].querySelector('a')?.getAttribute('href') || 'https://www.contestcalendar.com/fivewkcal.php';
+      if (link && !link.startsWith('http')) link = 'https://www.contestcalendar.com/' + link;
+      let title = cells[0].textContent.replace(/^\s*\+\s*/, '').trim();
+      if (!title) continue;
+      const desc = cells[1].textContent.replace(/\s+/g, ' ').trim();
+      const isUK = UK_CONTEST_TERMS.some(t => title.toLowerCase().includes(t));
+      const dateMatch = desc.match(/([A-Z][a-z]{2})\s+(\d+)/);
+      let dateObj = new Date(0);
+      if (dateMatch) {
+        const mi = months.indexOf(dateMatch[1]);
+        if (mi >= 0) {
+          let y = now.getFullYear();
+          dateObj = new Date(y, mi, parseInt(dateMatch[2]));
+          if (dateObj < new Date(y - 1, 6, 1)) dateObj = new Date(y + 1, mi, parseInt(dateMatch[2]));
+        }
+      }
+      entries.push({ title, desc, link, isUK, date: dateObj });
+    }
+    return entries.length ? entries : null;
+  }
+  // Try five-week calendar HTML first (most comprehensive)
+  items = await fetchFiveWeek();
+  // Fall back to RSS via CORS proxy (38+ items), then rss2json (10 items)
+  if (!items) {
+    // Try CORS proxy for full RSS feed
+    const rssText = await proxyFetch('https://www.contestcalendar.com/calendar.rss');
+    if (rssText) {
+      const doc = new DOMParser().parseFromString(rssText, 'text/xml');
+      const rssItems = Array.from(doc.querySelectorAll('item')).map(item => ({
+        title: (item.querySelector('title')?.textContent || '').trim(),
+        desc: (item.querySelector('description')?.textContent || '').trim(),
+        link: (item.querySelector('link')?.textContent || '').trim(),
+        isUK: UK_CONTEST_TERMS.some(t => (item.querySelector('title')?.textContent || '').toLowerCase().includes(t)),
+        date: (() => {
+          const d = (item.querySelector('description')?.textContent || '');
+          const m = d.match(/([A-Z][a-z]{2})\s+(\d+)/);
+          if (m) { const mi = months.indexOf(m[1]); if (mi >= 0) { let y = now.getFullYear(); const o = new Date(y, mi, parseInt(m[2])); if (o < new Date(y - 1, 6, 1)) return new Date(y + 1, mi, parseInt(m[2])); return o; } }
+          return new Date(0);
+        })()
+      }));
+      if (rssItems.length > 0) items = rssItems;
+    }
+  }
+  // Last resort: rss2json (limited to 10 items)
+  if (!items || items.length < 3) {
+    try {
+      const c = new AbortController(); const t = setTimeout(() => c.abort(), 10000);
+      const r = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https://www.contestcalendar.com/calendar.rss', { signal: c.signal });
+      clearTimeout(t);
+      if (r.ok) {
+        const j = await r.json();
+        if (j.status === 'ok' && Array.isArray(j.items) && j.items.length > 0) {
+          items = j.items.map(item => ({
+            title: item.title || '',
+            desc: item.description || item.content || '',
+            link: item.link || '',
+            isUK: UK_CONTEST_TERMS.some(t => (item.title || '').toLowerCase().includes(t)),
+            date: (() => {
+              const d = item.description || item.content || '';
+              const m = d.match(/([A-Z][a-z]{2})\s+(\d+)/);
+              if (m) { const mi = months.indexOf(m[1]); if (mi >= 0) { let y = now.getFullYear(); const o = new Date(y, mi, parseInt(m[2])); if (o < new Date(y - 1, 6, 1)) return new Date(y + 1, mi, parseInt(m[2])); return o; } }
+              return new Date(0);
+            })()
+          }));
+        }
+      }
+    } catch(e) {}
+  }
+  if (!items || !items.length) { loading.style.display = 'none'; error.style.display = 'block'; return; }
+  allContests = items;
+  loading.style.display = 'none';
+  renderContests();
+}
+
+function renderContests() {
+  const filter = contestViewFilter;
+  const filtered = filter === 'uk' ? allContests.filter(c => c.isUK) : allContests;
+  buildContestModePills(filtered);
+  let rows = filtered.filter(c => {
+    if (contestModeFilter !== 'all' && getContestMode(c.title, c.desc) !== contestModeFilter) return false;
+    return true;
+  });
+  rows.sort((a, b) => a.date - b.date);
+  const list = document.getElementById('contest-list');
+  const empty = document.getElementById('contest-empty');
+  document.getElementById('contest-count').textContent = rows.length + ' contests';
+  if (!rows.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  list.innerHTML = rows.map(c => {
+    const m = getContestMode(c.title, c.desc);
+    const mc = CONTEST_MODE_COLORS[m] || '#6b7280';
+    return '<div class="contest-card" onclick="window.open(\'' + c.link + '\',\'_blank\')">' +
+      '<div class="contest-card-title"><span class="mode-dot" style="background:' + mc + ';display:inline-block;margin-right:5px"></span>' + c.title + (c.isUK ? '<span class="contest-tag">UK</span>' : '') + '</div>' +
+      '<div class="contest-card-date">' + c.desc + '</div>' +
+      '<div class="contest-card-meta">' + (c.date && c.date.getTime() > 0 ? c.date.toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short', year:'numeric' }) : 'TBC') + '</div></div>';
+  }).join('');
+}
+
+/* ---- SOTA / POTA Spots ---- */
+let spotData = [];
+let spotModeFilter = 'all';
+let spotMap = null, spotMarkers = null;
+
+const MODE_COLORS = { ssb:'#3b82f6', cw:'#14b8a6', fm:'#22c55e', ft8:'#a855f7', ft4:'#eab308', dmr:'#ef4444', rst:'#f97316', rtty:'#f97316', psk:'#ec4899', other:'#6b7280' };
+
+function getModeGroup(m) {
+  const u = (m || '').toUpperCase();
+  if (u === 'SSB' || u === 'LSB' || u === 'USB' || u === 'PHONE' || u === 'PY') return 'SSB';
+  if (u === 'CW') return 'CW';
+  if (u === 'FM' || u === 'NFM') return 'FM';
+  if (u === 'FT8') return 'FT8';
+  if (u === 'FT4') return 'FT4';
+  if (u === 'DMR') return 'DMR';
+  if (u === 'RTTY' || u === 'RST') return 'RTTY';
+  return 'Other';
+}
+
+function modeColor(m) {
+  const g = getModeGroup(m);
+  return MODE_COLORS[g.toLowerCase()] || MODE_COLORS.other;
+}
+
+function setSpotModeFilter(m) { spotModeFilter = m; renderSpots(); }
+
+function buildModePills() {
+  const container = document.getElementById('mode-pills');
+  if (!container) return;
+  const counts = { all: spotData.length };
+  spotData.forEach(s => {
+    const g = getModeGroup(s.mode);
+    counts[g] = (counts[g] || 0) + 1;
+    if (g !== 'Other') counts.other = (counts.other || 0);
+  });
+  const modes = ['all','SSB','CW','FM','FT8','FT4','DMR','RTTY','Other'];
+  container.innerHTML = modes.map(m => {
+    const cnt = counts[m] || 0;
+    if (m !== 'all' && !cnt) return '';
+    const color = m === 'all' ? 'var(--accent)' : modeColor(m);
+    return '<button class="mode-pill' + (spotModeFilter === m ? ' on' : '') + '" onclick="setSpotModeFilter(\'' + m + '\')" style="' + (spotModeFilter === m ? 'color:' + color : '') + '">' +
+      (m === 'all' ? '' : '<span class="mode-dot" style="background:' + color + '"></span>') +
+      (m === 'all' ? 'All' : m) +
+      ' <span class="mode-cnt">' + cnt + '</span></button>';
+  }).filter(Boolean).join('');
+}
+const parkCoordCache = {}, summitCoordCache = {};
+
+async function getParkCoords(ref) {
+  if (parkCoordCache[ref] !== undefined) return parkCoordCache[ref];
+  try {
+    const c = new AbortController(); const t = setTimeout(() => c.abort(), 5000);
+    const r = await fetch('https://api.pota.app/park/' + ref, { signal: c.signal });
+    clearTimeout(t);
+    if (r.ok) { const j = await r.json(); parkCoordCache[ref] = j.latitude && j.longitude ? [j.latitude, j.longitude] : null; return parkCoordCache[ref]; }
+  } catch(e) { clearTimeout(t); }
+  parkCoordCache[ref] = null;
+  return null;
+}
+
+async function getSummitCoords(assoc, code) {
+  const key = assoc + '/' + code;
+  if (summitCoordCache[key] !== undefined) return summitCoordCache[key];
+  try {
+    const c = new AbortController(); const t = setTimeout(() => c.abort(), 5000);
+    const r = await fetch('https://api2.sota.org.uk/api/summits/' + assoc + '/' + code, { signal: c.signal });
+    clearTimeout(t);
+    if (r.ok) { const j = await r.json(); summitCoordCache[key] = j.latitude && j.longitude ? [j.latitude, j.longitude] : null; return summitCoordCache[key]; }
+  } catch(e) { clearTimeout(t); }
+  summitCoordCache[key] = null;
+  return null;
+}
+
+function initSpotMap() {
+  const el = document.getElementById('spot-map');
+  if (!el || typeof L === 'undefined') return;
+  if (spotMap) { spotMap.invalidateSize(); return; }
+  spotMap = L.map(el, { zoomControl: false, attributionControl: false }).setView([54.5, -3.5], 5.5);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18 }).addTo(spotMap);
+  spotMarkers = L.layerGroup().addTo(spotMap);
+  el.style.display = 'block';
+  setTimeout(() => spotMap.invalidateSize(), 200);
+}
+
+function updateSpotMap(rows) {
+  const el = document.getElementById('spot-map');
+  if (!el) return;
+  initSpotMap();
+  spotMarkers.clearLayers();
+  const coords = [];
+  const promises = rows.filter(s => !s._latlng).map(async s => {
+    if (s.type === 'pota' && s.ref) s._latlng = await getParkCoords(s.ref);
+    else if (s.type === 'sota' && s._assoc && s.ref) s._latlng = await getSummitCoords(s._assoc, s.ref);
+  });
+  if (!promises.length) {
+    renderMarkers(rows, coords);
+    return;
+  }
+  Promise.all(promises).then(() => renderMarkers(rows, coords));
+}
+
+function renderMarkers(rows, coords) {
+  if (!spotMap || !spotMarkers) return;
+  spotMarkers.clearLayers();
+  const el = document.getElementById('spot-map');
+  let hasAny = false;
+  const bounds = [];
+  rows.forEach(s => {
+    const ll = s._latlng;
+    if (!ll) return;
+    hasAny = true;
+    bounds.push(ll);
+    const color = s.type === 'pota' ? '#1a56db' : '#9d174d';
+    const icon = L.divIcon({ html: '<div style="width:12px;height:12px;border-radius:50%;background:' + color + ';border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3)"></div>', iconSize: [12, 12], className: '' });
+    const popup = '<b>' + s.callsign + '</b><br>' + s.frequency + ' ' + s.mode + '<br>' + s.ref + ' ' + s.name;
+    L.marker(ll, { icon }).bindPopup(popup).addTo(spotMarkers);
+  });
+  if (hasAny) {
+    el.style.display = 'block';
+    spotMap.fitBounds(bounds, { padding: [20, 20], maxZoom: 10 });
+  } else {
+    el.style.display = 'none';
+  }
+  setTimeout(() => spotMap.invalidateSize(), 300);
+}
+
+async function fetchSpots() {
+  const loading = document.getElementById('spot-loading');
+  const error = document.getElementById('spot-error');
+  const tbody = document.getElementById('spot-tbody');
+  loading.style.display = 'block'; error.style.display = 'none'; tbody.innerHTML = '';
+  spotData = [];
+  let c, t;
+  try {
+    c = new AbortController(); t = setTimeout(() => c.abort(), 10000);
+    const r = await fetch('https://api.pota.app/spot/', { signal: c.signal });
+    clearTimeout(t);
+    if (r.ok) {
+      const j = await r.json();
+      if (Array.isArray(j)) {
+        spotData.push(...j.filter(s => s.reference && /^G/i.test(s.reference)).map(s => ({
+          type: 'pota', time: new Date(s.spotTime || 0), callsign: s.activator || '',
+          frequency: s.frequency || '', mode: s.mode || '', ref: s.reference || '',
+          name: s.name || '', location: s.locationDesc || '', comments: s.comments || '',
+          lat: s.latitude || null, lng: s.longitude || null
+        })));
+      }
+    }
+  } catch(e) { clearTimeout(t); }
+  try {
+    c = new AbortController(); t = setTimeout(() => c.abort(), 10000);
+    const r = await fetch('https://api2.sota.org.uk/api/spots/10/all', { signal: c.signal, headers: { 'Accept': 'application/json' } });
+    clearTimeout(t);
+    if (r.ok) {
+      const j = await r.json();
+      if (Array.isArray(j)) {
+        spotData.push(...j.filter(s => s.associationCode === 'G' || s.associationCode === 'GM' || s.associationCode === 'GW' || s.associationCode === 'GI').map(s => ({
+          type: 'sota', time: new Date(s.timeStamp || 0), callsign: s.activatorCallsign || '',
+          frequency: s.frequency || '', mode: s.mode || '', ref: s.summitCode || '',
+          name: s.summitDetails || '', location: s.associationCode || '', comments: s.comments || '',
+          lat: null, lng: null, _assoc: s.associationCode
+        })));
+      }
+    }
+  } catch(e) { clearTimeout(t); }
+  loading.style.display = 'none';
+  renderSpots();
+}
+
+function renderSpots() {
+  const modeFilter = spotModeFilter;
+  let rows = spotData.filter(s => {
+    if (modeFilter !== 'all' && getModeGroup(s.mode) !== modeFilter) return false;
+    return true;
+  });
+  rows.sort((a, b) => b.time - a.time);
+  document.getElementById('spot-count').textContent = rows.length + ' spots';
+  buildModePills();
+  const tbody = document.getElementById('spot-tbody');
+  const empty = document.getElementById('spot-empty');
+  if (!rows.length) { tbody.innerHTML = ''; empty.style.display = 'block'; updateSpotMap(rows); return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = rows.map(s => {
+    const timeStr = s.time && s.time.getTime() > 0 ? s.time.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' }) : '--';
+    const dateStr = s.time && s.time.getTime() > 0 ? s.time.toLocaleDateString('en-GB', { day:'numeric', month:'short' }) : '';
+    return '<tr>' +
+      '<td class="spot-col-type"><span class="spot-type-indicator ' + s.type + '">' + (s.type === 'pota' ? 'P' : 'S') + '</span></td>' +
+      '<td class="spot-col-time"><span class="spot-td-time">' + timeStr + '<br>' + dateStr + '</span></td>' +
+      '<td class="spot-col-call"><span class="spot-td-call">' + s.callsign + '</span></td>' +
+      '<td class="spot-col-freq"><span class="spot-td-freq">' + s.frequency + '</span></td>' +
+      '<td class="spot-col-mode"><span style="font-size:11px;display:inline-flex;align-items:center;gap:4px"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:' + modeColor(s.mode) + '"></span>' + (s.mode || '—') + '</span></td>' +
+      '<td class="spot-col-ref"><span class="spot-td-ref">' + s.ref + '</span></td>' +
+      '<td class="spot-col-name"><span style="font-size:12px">' + s.name + '</span>' + (s.comments ? '<br><span style="font-size:10px;color:var(--text3)">' + s.comments + '</span>' : '') + '</td>' +
+      '</tr>';
+  }).join('');
+  updateSpotMap(rows);
 }
 
 loadBM();
