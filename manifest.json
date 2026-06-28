@@ -1,0 +1,46 @@
+{
+  "name": "M6YSM — UK Amateur Radio Tools",
+  "short_name": "M6YSM Radio",
+  "description": "UK amateur radio tools: DMR talk groups across Brandmeister, TGIF, FreeSTAR, FreeDMR, and a UK repeater finder (FM/DMR/D-Star/Fusion).",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#1a56db",
+  "theme_color": "#1a56db",
+  "lang": "en-GB",
+  "categories": ["utilities", "reference", "communication"],
+  "icons": [
+    {
+      "src": "icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Talk Groups",
+      "short_name": "TGs",
+      "description": "Browse UK DMR talk groups",
+      "url": "/?view=talkgroups"
+    },
+    {
+      "name": "Repeaters",
+      "short_name": "Rpt",
+      "description": "Find UK repeaters near you",
+      "url": "/?view=repeaters"
+    },
+    {
+      "name": "Favourites",
+      "short_name": "Favs",
+      "description": "View your favourite talk groups",
+      "url": "/?filter=favourites"
+    }
+  ]
+}

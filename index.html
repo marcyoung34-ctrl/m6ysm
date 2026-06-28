@@ -1,0 +1,1500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="M6YSM — UK amateur radio tools: DMR talk groups (Brandmeister, TGIF, FreeSTAR, FreeDMR) and repeater finder (FM, DMR, D-Star, Fusion).">
+<meta name="theme-color" content="#1a56db">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="M6YSM Radio">
+<link rel="canonical" href="https://m6ysm.uk/">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.svg">
+<title>M6YSM — UK Amateur Radio Tools</title>
+<style>
+  :root {
+    --bg: #f8f9fa;
+    --surface: #ffffff;
+    --surface2: #f1f3f5;
+    --border: #dee2e6;
+    --text: #212529;
+    --text2: #495057;
+    --text3: #868e96;
+    --accent: #1a56db;
+    --accent-bg: #e8f0fe;
+    --accent-text: #1a56db;
+    --success-bg: #d3f9d8;
+    --success-text: #2b8a3e;
+    --warning-bg: #fff9db;
+    --warning-text: #e67700;
+    --radius: 8px;
+    --fav: #f59e0b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d24;
+      --surface2: #22262e;
+      --border: #2c3040;
+      --text: #e9ecef;
+      --text2: #adb5bd;
+      --text3: #6c757d;
+      --accent: #4d8bf5;
+      --accent-bg: #1a2a4a;
+      --accent-text: #74a3f5;
+      --success-bg: #1a3a20;
+      --success-text: #69db7c;
+      --warning-bg: #2a2000;
+      --warning-text: #fcc419;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* Top nav */
+  .top-nav { display: flex; background: var(--surface); color: var(--text); padding: 0 1rem; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid var(--border); }
+  .top-nav-inner { max-width: 900px; margin: 0 auto; display: flex; align-items: center; gap: .75rem; height: 56px; width: 100%; }
+  .top-nav-brand { display: flex; align-items: center; gap: .5rem; font-weight: 700; font-size: 16px; letter-spacing: -.02em; cursor: pointer; flex-shrink: 0; color: var(--text); }
+  .top-nav-brand svg { width: 24px; height: 24px; color: var(--accent); }
+  .top-nav-links { display: flex; gap: 0; margin-left: auto; align-items: center; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .top-nav-links::-webkit-scrollbar { display: none; }
+  .top-nav-links button { background: none; border: none; color: var(--text3); font-size: 13px; font-weight: 500; padding: 0 14px; height: 56px; cursor: pointer; transition: all .12s; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+  .top-nav-links button:hover { color: var(--text); }
+  .top-nav-links button.on { color: var(--accent); border-bottom-color: var(--accent); }
+  .install-btn { font-size: 11px; padding: 5px 12px; margin-left: 10px; background: var(--accent); border: none; color: #fff; border-radius: 6px; cursor: pointer; display: none; white-space: nowrap; font-weight: 500; }
+  .install-btn:hover { opacity: .9; }
+  .live-chip { font-size: 10px; font-weight: 600; padding: 2px 7px; background: #22c55e; border-radius: 99px; color: #fff; letter-spacing: .04em; margin-left: 6px; }
+
+  /* Main */
+  main { max-width: 900px; margin: 0 auto; padding: 1rem; }
+
+  /* Home page */
+  .hero { text-align: center; padding: 2.5rem 1rem 1.5rem; }
+  .hero h1 { font-size: 26px; font-weight: 800; letter-spacing: -.02em; margin-bottom: .5rem; }
+  .hero p { font-size: 15px; color: var(--text2); max-width: 500px; margin: 0 auto; line-height: 1.5; }
+  .hero-search { max-width: 400px; margin: 1.25rem auto 0; position: relative; }
+  .hero-search input { width: 100%; padding: 11px 14px 11px 38px; border: 2px solid var(--border); border-radius: 10px; font-size: 15px; background: var(--surface); color: var(--text); outline: none; }
+  .hero-search input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+  .hero-search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text3); pointer-events: none; }
+  .feature-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: .5rem; }
+  .feature-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; cursor: pointer; transition: all .15s; }
+  .feature-card:hover { border-color: var(--accent); box-shadow: 0 2px 12px rgba(0,0,0,.08); transform: translateY(-1px); }
+  .feature-card-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: .75rem; }
+  .feature-card h3 { font-size: 15px; font-weight: 600; margin-bottom: .25rem; }
+  .feature-card p { font-size: 13px; color: var(--text3); line-height: 1.4; }
+  .home-pills { margin-top: 1.5rem; display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+  .home-pills button { font-size: 12px; padding: 5px 14px; border-radius: 99px; border: 1px solid var(--border); background: var(--surface); color: var(--text2); cursor: pointer; }
+  .home-pills button:hover { border-color: var(--accent); color: var(--accent); }
+  .home-stat { font-size: 12px; color: var(--text3); text-align: center; margin-top: 1rem; }
+  @media (min-width: 600px) { .feature-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 599px) { .feature-grid { grid-template-columns: 1fr; } }
+
+  /* Stats row */
+  .stats { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; margin-bottom: 1rem; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: .625rem .75rem; }
+  .stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: .05em; color: var(--text3); margin-bottom: 3px; }
+  .stat-val { font-size: 22px; font-weight: 700; color: var(--text); line-height: 1; }
+  .stat-sub { font-size: 10px; color: var(--text3); margin-top: 3px; }
+  .bm-live { color: #22c55e; }
+
+  /* Toolbar */
+  .toolbar { display: flex; gap: 8px; margin-bottom: .75rem; }
+  .search-wrap { flex: 1; position: relative; }
+  .search-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text3); pointer-events: none; }
+  #q { width: 100%; padding: 9px 9px 9px 34px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 14px; background: var(--surface); color: var(--text); outline: none; }
+  #q:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+  #q::placeholder { color: var(--text3); }
+  .sort-btn { padding: 0 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text2); font-size: 13px; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 5px; }
+  .sort-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Pills */
+  .pills { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: .75rem; }
+  .pill { font-size: 12px; padding: 4px 11px; border-radius: 99px; border: 1px solid var(--border); background: var(--surface); color: var(--text2); cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all .12s; }
+  .pill:hover { border-color: var(--accent); color: var(--accent); }
+  .pill.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .pill .cnt { font-size: 10px; opacity: .75; }
+  .pill.fav-pill.on { background: var(--fav); border-color: var(--fav); }
+
+  /* Status bar */
+  .statusbar { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text3); margin-bottom: .5rem; }
+  .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #22c55e; margin-right: 4px; animation: blink 2s infinite; }
+  @keyframes blink { 0%,100%{opacity:1}50%{opacity:.3} }
+
+  /* Error bar */
+  .errbar { font-size: 12px; background: var(--warning-bg); color: var(--warning-text); padding: 7px 12px; border-radius: var(--radius); margin-bottom: .75rem; display: none; border: 1px solid var(--warning-text); }
+
+  /* Offline bar */
+  .offlinebar { font-size: 12px; background: var(--surface2); color: var(--text2); padding: 7px 12px; border-radius: var(--radius); margin-bottom: .75rem; border: 1px solid var(--border); display: none; }
+
+  /* Table */
+  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  thead th { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--text3); padding: 8px 10px; background: var(--surface2); border-bottom: 1px solid var(--border); text-align: left; }
+  tbody td { padding: 9px 10px; border-bottom: 1px solid var(--border); font-size: 13px; vertical-align: top; overflow: hidden; text-overflow: ellipsis; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--surface2); }
+  .col-tg { width: 78px; }
+  .col-name { width: auto; }
+  .col-net { width: 108px; }
+  .col-fav { width: 40px; text-align: center; }
+  .tg-num { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; color: var(--text); }
+  .name-cell { line-height: 1.4; }
+  .net-info { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .net-tag { font-size: 10px; padding: 1px 5px; border-radius: 3px; background: var(--accent-bg); color: var(--accent-text); margin-left: 4px; vertical-align: middle; font-weight: 500; }
+  .badge { font-size: 10px; padding: 2px 8px; border-radius: 99px; font-weight: 600; white-space: nowrap; }
+  .listen-btn { display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;text-decoration:none;font-size:12px;transition:transform .15s,box-shadow .15s;cursor:pointer; }
+  .listen-btn:hover { transform:scale(1.2);box-shadow:0 2px 8px rgba(0,0,0,.25); }
+  .listen-na { color:var(--text3);font-size:12px; }
+  .bm  { background: #dbeafe; color: #1e40af; }
+  .tgif { background: #fce7f3; color: #9d174d; }
+  .fs  { background: #dcfce7; color: #166534; }
+  .fd  { background: #fef3c7; color: #92400e; }
+  @media (prefers-color-scheme: dark) {
+    .bm  { background: #1e3a5f; color: #93c5fd; }
+    .tgif { background: #4a1942; color: #f9a8d4; }
+    .fs  { background: #14532d; color: #86efac; }
+    .fd  { background: #451a03; color: #fcd34d; }
+    .listen-btn { background: #3b82f6; }
+  }
+  .fav-btn { background: none; border: none; font-size: 17px; cursor: pointer; color: var(--text3); line-height: 1; padding: 2px; }
+  .fav-btn.on { color: var(--fav); }
+  .empty { padding: 3rem; text-align: center; color: var(--text3); font-size: 14px; }
+
+  /* View switching */
+  .view { display: block; }
+  .view.hidden { display: none; }
+
+  /* Locator card */
+  .loc-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: .875rem; margin-bottom: 1rem; }
+  .loc-card-header { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: .625rem; }
+  .loc-input-row { display: flex; gap: 6px; margin-bottom: .5rem; }
+  .loc-input-row input { flex: 1; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 14px; background: var(--surface); color: var(--text); outline: none; }
+  .loc-input-row input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+  .loc-input-row button { padding: 9px 16px; border-radius: var(--radius); font-size: 13px; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text2); white-space: nowrap; display: flex; align-items: center; gap: 4px; }
+  .loc-input-row button:hover { border-color: var(--accent); color: var(--accent); }
+  #loc-search-btn { background: var(--accent); color: #fff; border-color: var(--accent); }
+  #loc-search-btn:hover { opacity: .9; }
+  #loc-search-btn:disabled { opacity: .5; cursor: default; }
+  .loc-radius-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text2); }
+  .loc-radius-row select { padding: 4px 8px; border: 1px solid var(--border); border-radius: var(--radius); font-size: 13px; background: var(--surface); color: var(--text); outline: none; cursor: pointer; }
+  .loc-status { font-size: 12px; color: var(--text3); margin-left: auto; }
+
+  /* Repeater table */
+  .rpt-table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .rpt-col-dist { width: 64px; }
+  .rpt-col-cs { width: 90px; }
+  .rpt-col-freq { width: 90px; }
+  .rpt-col-city { width: auto; }
+  .rpt-col-info { width: 70px; }
+  .rpt-td-dist { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; color: var(--text2); }
+  .rpt-td-cs { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px; font-weight: 600; color: var(--text); }
+  .rpt-td-freq { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; color: var(--text2); }
+  .rpt-city { font-size: 13px; }
+  .rpt-band { font-size: 10px; padding: 1px 5px; border-radius: 3px; background: var(--surface2); color: var(--text3); margin-left: 4px; font-weight: 500; }
+  .rpt-cc { font-size: 10px; color: var(--text3); margin-top: 2px; }
+  .rpt-loading { padding: 2rem; text-align: center; color: var(--text3); font-size: 13px; }
+  .rpt-error { padding: 1rem; text-align: center; color: var(--warning-text); font-size: 13px; background: var(--warning-bg); border-radius: var(--radius); }
+
+  @media (max-width: 600px) {
+    .rpt-col-dist { width: 52px; }
+    .rpt-col-cs { width: 76px; }
+    .rpt-col-freq { width: 76px; }
+    .rpt-col-info { width: 56px; }
+  }
+
+  /* Bottom nav */
+  .bottom-bar { display: flex; position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--border); z-index: 100; }
+  .bottom-bar button { flex: 1; padding: .75rem .5rem .6rem; background: none; border: none; font-size: 10px; color: var(--text3); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .bottom-bar button.on { color: var(--accent); }
+  .bottom-bar button svg { width: 20px; height: 20px; }
+
+  /* Spotter player bar */
+  #spotter-bar { display: none; position: fixed; bottom: 56px; left: 0; right: 0; background: var(--surface); border-top: 1px solid var(--accent); padding: 8px 16px; z-index: 99; align-items: center; gap: 10px; font-size: 13px; backdrop-filter: blur(8px); box-shadow: 0 -2px 12px rgba(0,0,0,.1); }
+  #spotter-bar.active { display: flex; }
+  #spotter-icon { font-size: 16px; color: var(--accent); animation: pulse 1.5s infinite; }
+  #spotter-label { font-weight: 600; color: var(--text1); white-space: nowrap; }
+  #spotter-status { font-size: 11px; color: var(--text3); flex: 1; }
+  #spotter-stop { background: var(--accent); color: #fff; border: none; border-radius: 4px; padding: 4px 12px; font-size: 12px; cursor: pointer; line-height: 1; }
+  #spotter-stop:hover { filter: brightness(1.2); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+  main { padding-bottom: 5rem; }
+  @media (max-width: 600px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .stat-val { font-size: 18px; }
+    .col-net { width: 82px; }
+    .col-tg { width: 64px; }
+    .badge { font-size: 9px; padding: 1px 5px; }
+  }
+  @media (max-width: 480px) {
+    .top-nav { padding: 0 .5rem; }
+    .top-nav-links button { font-size: 12px; padding: 0 10px; }
+    .top-nav-brand { font-size: 14px; }
+    .hero h1 { font-size: 20px; }
+    .hero p { font-size: 13px; }
+    #spotter-label { font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <div class="top-nav-inner">
+    <div class="top-nav-brand" onclick="switchView('home')">
+      <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2"><circle cx="14" cy="14" r="12"/><path d="M14 6v4M14 14l3 3"/></svg>
+      M6YSM
+    </div>
+    <div class="top-nav-links">
+      <button onclick="switchView('home')" id="nav-home" class="on">Home</button>
+      <button onclick="switchView('tg'); setMobileFilter('all')" id="nav-tg">Talkgroups</button>
+      <button onclick="switchView('rpt')" id="nav-rpt-top">Repeaters</button>
+      <button onclick="switchView('live')" id="nav-live-top">Live</button>
+      <button class="install-btn" id="install-btn">Install</button>
+      <span class="live-chip" id="live-chip">LIVE</span>
+    </div>
+  </div>
+</nav>
+
+<main>
+<div id="home-view" class="view">
+  <div class="hero">
+    <h1>UK Amateur Radio Tools</h1>
+    <p>DMR talk groups, repeater finder, and more — built for the UK amateur radio community by M6YSM.</p>
+    <div class="hero-search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="search" id="home-q" placeholder="Search talk groups…" oninput="homeSearch()" autocomplete="off" autocorrect="off" spellcheck="false">
+    </div>
+  </div>
+
+  <div class="feature-grid">
+    <div class="feature-card" onclick="switchView('tg'); setMobileFilter('all')">
+      <div class="feature-card-icon" style="background:#dbeafe;color:#1e40af">📞</div>
+      <h3>DMR Talk Groups</h3>
+      <p>Browse UK talk groups across Brandmeister, TGIF, FreeSTAR and FreeDMR. Search, filter by network, and save favourites.</p>
+    </div>
+    <div class="feature-card" onclick="switchView('rpt')">
+      <div class="feature-card-icon" style="background:#dcfce7;color:#166534">📡</div>
+      <h3>Repeater Finder</h3>
+      <p>Find all UK repeaters (FM, DMR, D-Star, Fusion, NXDN, P25, TETRA) near any postcode, town, or your GPS location.</p>
+    </div>
+    <div class="feature-card" onclick="switchView('live')">
+      <div class="feature-card-icon" style="background:#fce7f3;color:#9d174d">🔴</div>
+      <h3>Live Activity</h3>
+      <p>Watch live DMR transmissions across Brandmeister, TGIF, FreeSTAR and FreeDMR networks in real time.</p>
+    </div>
+  </div>
+
+  <div class="home-stat" id="home-stat">Loading talk groups…</div>
+
+  <div class="home-pills" id="home-pills"></div>
+</div>
+
+<div id="tg-view" class="view hidden">
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-label">Brandmeister</div>
+      <div class="stat-val bm-live" id="s-bm">—</div>
+      <div class="stat-sub">live from API</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">TGIF</div>
+      <div class="stat-val" id="s-tg">7</div>
+      <div class="stat-sub">UK curated</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">FreeSTAR</div>
+      <div class="stat-val" id="s-fs">4</div>
+      <div class="stat-sub">UK curated</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">FreeDMR</div>
+      <div class="stat-val" id="s-fd">9</div>
+      <div class="stat-sub">UK curated</div>
+    </div>
+  </div>
+
+  <div class="errbar" id="errbar">⚠️ Brandmeister API unavailable — showing cached data. Check your connection.</div>
+  <div class="offlinebar" id="offlinebar">📶 You're offline — showing cached data.</div>
+
+  <div class="toolbar">
+    <div class="search-wrap">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="search" id="q" placeholder="Search TG number, name or net info…" oninput="render()" autocomplete="off" autocorrect="off" spellcheck="false">
+    </div>
+    <button class="sort-btn" onclick="toggleSort()" id="sort-btn" aria-label="Toggle sort order">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M7 12h10M11 18h2"/></svg>
+      <span id="sort-label">TG ↑</span>
+    </button>
+  </div>
+
+  <div class="pills" id="pills"></div>
+
+  <div class="statusbar">
+    <span id="count-lbl"></span>
+    <span><span class="dot"></span>Updated <span id="updated">—</span></span>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th class="col-tg">TG</th>
+          <th class="col-name">Name</th>
+          <th class="col-net">Network</th>
+          <th class="col-fav">★</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Repeater view -->
+<div id="rpt-view" class="view hidden">
+  <div class="loc-card">
+    <div class="loc-card-header">Find repeaters near you</div>
+    <div class="loc-input-row">
+      <input type="text" id="loc-q" placeholder="Enter a UK postcode, town or city…" autocomplete="off" autocorrect="off" spellcheck="false">
+      <button id="loc-search-btn" onclick="searchLocation()">Search</button>
+      <button id="loc-gps-btn" onclick="getGPS()" title="Use my location">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+      </button>
+    </div>
+    <div class="loc-radius-row">
+      <span>Radius:</span>
+      <select id="radius-select">
+        <option value="5">5 miles</option>
+        <option value="10">10 miles</option>
+        <option value="15" selected>15 miles</option>
+        <option value="25">25 miles</option>
+        <option value="50">50 miles</option>
+      </select>
+      <span id="loc-status" class="loc-status"></span>
+    </div>
+  </div>
+
+  <div class="mode-pills">
+    <label><input type="radio" name="mode-filter" value="all" checked><span class="mode-label">All modes</span></label>
+    <label><input type="radio" name="mode-filter" value="fm"><span class="mode-label">FM</span></label>
+    <label><input type="radio" name="mode-filter" value="dmr"><span class="mode-label">DMR</span></label>
+  </div>
+
+  <div id="rpt-results">
+    <div class="empty" id="rpt-empty">Enter a location above to find nearby repeaters.</div>
+    <div class="rpt-table-wrap" id="rpt-table-wrap" style="display:none">
+      <div class="statusbar">
+        <span id="rpt-count-lbl"></span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th class="rpt-col-dist">Dist</th>
+            <th class="rpt-col-cs">Callsign</th>
+            <th class="rpt-col-freq">Freq</th>
+            <th class="rpt-col-city">Location</th>
+            <th class="rpt-col-info">Info</th>
+          </tr>
+        </thead>
+        <tbody id="rpt-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Live view -->
+<div id="live-view" class="view hidden">
+  <div class="loc-card">
+    <div class="loc-card-header">Live DMR Activity</div>
+    <div class="loc-radius-row" style="flex-wrap:wrap;gap:4px">
+      <span id="live-status-bm" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6c757d" title="Brandmeister"></span>
+      <span id="live-status-tgif" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6c757d" title="TGIF"></span>
+      <span id="live-status-fs" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6c757d" title="FreeSTAR"></span>
+      <span id="live-status-fd" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6c757d" title="FreeDMR"></span>
+      <span style="font-size:12px;color:var(--text3)" id="live-status-summary">Disconnected</span>
+      <span style="margin-left:auto;font-size:12px;color:var(--text3)" id="live-count">0 entries</span>
+    </div>
+  </div>
+
+  <div class="pills" id="live-network-pills"></div>
+
+  <div class="mode-pills">
+    <label><input type="radio" name="live-filter" value="uk" checked><span class="mode-label">UK only</span></label>
+    <label><input type="radio" name="live-filter" value="all"><span class="mode-label">All</span></label>
+  </div>
+
+  <div id="live-results">
+    <div class="empty" id="live-empty">Waiting for activity…</div>
+    <div class="rpt-table-wrap" id="live-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:70px">Time</th>
+            <th style="width:90px">Callsign</th>
+            <th style="width:auto">Name / TG</th>
+            <th style="width:80px">Duration</th>
+            <th style="width:44px">Listen</th>
+            <th style="width:80px">Network</th>
+          </tr>
+        </thead>
+        <tbody id="live-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- Spotter audio player bar -->
+<div id="spotter-bar">
+  <span id="spotter-icon">▶</span>
+  <span id="spotter-label">TG 2350</span>
+  <span id="spotter-status">Connecting…</span>
+  <button id="spotter-stop" onclick="stopListening()" title="Stop">■</button>
+</div>
+
+<!-- Mobile bottom nav -->
+<nav class="bottom-bar" id="bottom-nav">
+  <button onclick="switchView('home')" id="nav-home-bot">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7m-9 2v8m9-8l2 2m-2-2v8"/></svg>
+    Home
+  </button>
+  <button onclick="switchView('tg'); setMobileFilter('all')" id="nav-tg-view">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    TGs
+  </button>
+  <button onclick="switchView('rpt')" id="nav-rpt-bot">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 2h20v20H2z"/><path d="M6 6h4v4H6zM14 6h4v4h-4zM6 14h4v4H6zM14 14h4v4h-4z"/></svg>
+    Repeaters
+  </button>
+  <button onclick="switchView('live')" id="nav-live-bot">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+    Live
+  </button>
+  <button onclick="switchView('tg'); setMobileFilter('fav')" id="nav-fav-bot">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
+    Favs
+  </button>
+</nav>
+
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@msgpack/msgpack@2.8.0/dist.es5+umd/msgpack.min.js"></script>
+<script>
+const STATIC = [
+  {tg:"2350",name:"UK Calling",net:"TGIF"},
+  {tg:"23455",name:"UK Hubnet",net:"TGIF",hasNet:true,netInfo:"UK Hubnet — Sunday 20:00 local · Long-running cross-mode UK net"},
+  {tg:"23510",name:"England",net:"TGIF"},
+  {tg:"23520",name:"Wales",net:"TGIF"},
+  {tg:"23526",name:"UK Wide",net:"TGIF"},
+  {tg:"23530",name:"Scotland",net:"TGIF"},
+  {tg:"23540",name:"Northern Ireland",net:"TGIF"},
+  {tg:"1938",name:"Bury Radio Society Net",net:"TGIF",hasNet:true,netInfo:"Bury RS DMR Net — Thursday 20:00 local · North West England, all welcome"},
+  {tg:"1",name:"FreeSTAR UK Calling",net:"FreeSTAR"},
+  {tg:"235",name:"FreeSTAR UK Wide",net:"FreeSTAR"},
+  {tg:"2350",name:"FreeSTAR UK Chat",net:"FreeSTAR"},
+  {tg:"23550",name:"FreeSTAR Hub",net:"FreeSTAR"},
+  {tg:"23426",name:"DV Scotland / FreeSTAR Net",net:"FreeSTAR",hasNet:true,netInfo:"Cross-network net — also accessible via TGIF and Phoenix UK · check dvsph.net for schedule"},
+  {tg:"2351",name:"UK Wide",net:"FreeDMR"},
+  {tg:"2355",name:"Scotland Chat",net:"FreeDMR"},
+  {tg:"2356",name:"Wales Chat",net:"FreeDMR"},
+  {tg:"2358",name:"London",net:"FreeDMR"},
+  {tg:"2359",name:"Kernow",net:"FreeDMR"},
+  {tg:"23510",name:"England",net:"FreeDMR"},
+  {tg:"23520",name:"Wales",net:"FreeDMR"},
+  {tg:"23530",name:"Scotland",net:"FreeDMR"},
+  {tg:"23540",name:"Northern Ireland",net:"FreeDMR"},
+];
+
+const BM_FALLBACK = [
+  {tg:"235",name:"UK Call — QSY to 2351 or 2352",net:"Brandmeister"},
+  {tg:"2350",name:"United Kingdom",net:"Brandmeister"},
+  {tg:"2351",name:"Chat 1",net:"Brandmeister",hasNet:true,netInfo:"CQ-UK Net — Sunday 20:00 local · CQ-UK weekly net, also on Wires-X 27793 / YSF"},
+  {tg:"2352",name:"Chat 2",net:"Brandmeister"},
+  {tg:"2353",name:"Chat 3",net:"Brandmeister"},
+  {tg:"2354",name:"Ireland",net:"Brandmeister"},
+  {tg:"2355",name:"Scotland",net:"Brandmeister"},
+  {tg:"2356",name:"Wales",net:"Brandmeister"},
+  {tg:"2357",name:"Isle of Man",net:"Brandmeister"},
+  {tg:"2358",name:"London",net:"Brandmeister"},
+  {tg:"2359",name:"Kernow",net:"Brandmeister"},
+  {tg:"23440",name:"Special Events",net:"Brandmeister"},
+  {tg:"23441",name:"Special Events 1",net:"Brandmeister"},
+  {tg:"23442",name:"Special Events 2",net:"Brandmeister"},
+  {tg:"23443",name:"Special Events 3",net:"Brandmeister"},
+  {tg:"23486",name:"UK-TMO",net:"Brandmeister"},
+  {tg:"23490",name:"East Anglia",net:"Brandmeister"},
+  {tg:"23500",name:"S.West",net:"Brandmeister"},
+  {tg:"23510",name:"S.East",net:"Brandmeister"},
+  {tg:"23515",name:"Guernsey",net:"Brandmeister",hasNet:true,netInfo:"Guernsey ARS DMR Net — Thursday 20:00 local · via GB7GY TS1, all welcome"},
+  {tg:"23516",name:"Jersey",net:"Brandmeister",hasNet:true,netInfo:"Jersey ARS DMR Net — Sunday 20:00 local · via GB3GJ, all welcome"},
+  {tg:"23520",name:"N.West",net:"Brandmeister"},
+  {tg:"23526",name:"Hubnet UK",net:"Brandmeister"},
+  {tg:"23530",name:"Yorkshire",net:"Brandmeister",hasNet:true,netInfo:"Sunday Night DMR Net — Sunday 20:00 local · Hosted by HFDXARC"},
+  {tg:"23531",name:"RAYNET UK",net:"Brandmeister"},
+  {tg:"23540",name:"Ireland Chat",net:"Brandmeister"},
+  {tg:"23525",name:"Furness ARS Net",net:"Brandmeister",hasNet:true,netInfo:"Furness Amateur Radio Society Net — Friday 19:00 local · North West England"},
+  {tg:"23550",name:"Scotland Chat",net:"Brandmeister",hasNet:true,netInfo:"Mid Lanarkshire ARS Net — Wednesday 20:00 local · Scotland Chat TG"},
+  {tg:"235419",name:"DMR Packet Net",net:"Brandmeister",hasNet:true,netInfo:"DMR Packet Net — Tuesday 20:00 local · Packet radio discussion, Scotland region"},
+  {tg:"23557",name:"Scotland East",net:"Brandmeister"},
+  {tg:"23558",name:"Scotland Highland & Islands",net:"Brandmeister"},
+  {tg:"23559",name:"Scotland West",net:"Brandmeister"},
+  {tg:"23560",name:"North East",net:"Brandmeister"},
+  {tg:"23562",name:"M62 Corridor",net:"Brandmeister"},
+  {tg:"23570",name:"Wales Chat",net:"Brandmeister"},
+  {tg:"23575",name:"SALOP Cluster",net:"Brandmeister"},
+  {tg:"23580",name:"West Midland",net:"Brandmeister"},
+  {tg:"23590",name:"East Midlands",net:"Brandmeister"},
+  {tg:"27247",name:"NWAG (North West Amateur Group)",net:"Brandmeister",hasNet:true,netInfo:"NWAG Early Evening Net — Daily 18:30 local · North West Allstar Group hub"},
+  {tg:"235907",name:"JOTA UK",net:"Brandmeister"},
+];
+
+let ALL = [];
+let activeFilters = new Set();
+let sortAsc = true;
+let mobileFilter = 'all';
+
+let favs;
+try { favs = new Set(JSON.parse(localStorage.getItem('dmr-favs') || '[]')); } catch(e) { favs = new Set(); }
+
+function saveFavs() {
+  try { localStorage.setItem('dmr-favs', JSON.stringify([...favs])); } catch(e) {}
+}
+
+function badgeClass(net) {
+  return {Brandmeister:'bm', TGIF:'tgif', FreeSTAR:'fs', FreeDMR:'fd'}[net] || 'bm';
+}
+
+async function loadBM() {
+  if (!navigator.onLine) {
+    document.getElementById('offlinebar').style.display = 'block';
+    ALL = [...BM_FALLBACK, ...STATIC];
+    document.getElementById('s-bm').textContent = BM_FALLBACK.length;
+    finish();
+    return;
+  }
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 7000);
+    const r = await fetch('https://api.brandmeister.network/v2/talkgroup/?limit=500', { signal: ctrl.signal });
+    clearTimeout(timer);
+    if (!r.ok) throw new Error();
+    const j = await r.json();
+    let rows;
+    if (Array.isArray(j.results)) {
+      rows = j.results.filter(t => {
+        const id = String(t.talkgroup || t.id || '');
+        return id === '235' || id.startsWith('235') || id === '27247';
+      }).map(t => ({
+        tg: String(t.talkgroup || t.id),
+        name: t.name || t.description || 'Unknown',
+        net: 'Brandmeister',
+        hasNet: false,
+        netInfo: ''
+      }));
+    } else if (j && typeof j === 'object') {
+      rows = Object.entries(j).filter(([id]) => id === '235' || id.startsWith('235') || id === '27247').map(([id, name]) => ({
+        tg: id,
+        name: String(name || 'Unknown'),
+        net: 'Brandmeister',
+        hasNet: false,
+        netInfo: ''
+      }));
+    } else {
+      rows = [];
+    }
+    const bmRows = rows.length >= 5 ? rows : BM_FALLBACK;
+    ALL = [...bmRows, ...STATIC];
+    document.getElementById('s-bm').textContent = bmRows.length;
+    document.getElementById('errbar').style.display = 'none';
+  } catch(e) {
+    ALL = [...BM_FALLBACK, ...STATIC];
+    document.getElementById('s-bm').textContent = BM_FALLBACK.length;
+    document.getElementById('errbar').style.display = 'block';
+  }
+  finish();
+}
+
+function finish() {
+  document.getElementById('updated').textContent = new Date().toLocaleTimeString('en-GB');
+  buildPills();
+  render();
+  // Update home page
+  const statEl = document.getElementById('home-stat');
+  if (statEl) {
+    const nets = {};
+    ALL.forEach(d => { nets[d.net] = (nets[d.net]||0) + 1; });
+    statEl.textContent = Object.entries(nets).map(([k,v]) => k + ': ' + v).join(' · ') + ' talk groups loaded';
+  }
+  const homePills = document.getElementById('home-pills');
+  if (homePills) {
+    const nets = {};
+    ALL.forEach(d => { nets[d.net] = (nets[d.net]||0) + 1; });
+    ['Brandmeister','TGIF','FreeSTAR','FreeDMR'].forEach(label => {
+      if (!nets[label]) return;
+      const btn = document.createElement('button');
+      btn.textContent = label + ' (' + nets[label] + ')';
+      btn.onclick = () => { switchView('tg'); setMobileFilter(label); };
+      homePills.appendChild(btn);
+    });
+  }
+}
+
+function homeSearch() {
+  const q = document.getElementById('home-q').value.trim();
+  if (q) {
+    switchView('tg');
+    document.getElementById('q').value = q;
+    render();
+  }
+}
+
+function buildPills() {
+  const counts = {};
+  ALL.forEach(d => { counts[d.net] = (counts[d.net]||0)+1; });
+  const hasNetCount = ALL.filter(d => d.hasNet).length;
+  const order = ['Brandmeister','TGIF','FreeSTAR','FreeDMR','Has net','Favourites'];
+  const f = document.getElementById('pills');
+  f.innerHTML = '';
+  order.forEach(label => {
+    const n = label === 'Has net' ? hasNetCount : label === 'Favourites' ? favs.size : (counts[label]||0);
+    const el = document.createElement('button');
+    el.className = 'pill' + (label === 'Favourites' ? ' fav-pill' : '') + (activeFilters.has(label) ? ' on' : '');
+    el.innerHTML = label + '<span class="cnt">' + n + '</span>';
+    el.onclick = () => {
+      activeFilters.has(label) ? activeFilters.delete(label) : activeFilters.add(label);
+      buildPills(); render();
+    };
+    f.appendChild(el);
+  });
+}
+
+function toggleSort() {
+  sortAsc = !sortAsc;
+  document.getElementById('sort-label').textContent = 'TG ' + (sortAsc ? '↑' : '↓');
+  render();
+}
+
+function setMobileFilter(f) {
+  if (currentView !== 'tg') return;
+  mobileFilter = f;
+  ['tg-view','fav-bot'].forEach(id => {
+    const el = document.getElementById('nav-' + id);
+    if (!el) return;
+    el.classList.toggle('on', (f === 'all' && id === 'tg-view') || (f === 'fav' && id === 'fav-bot'));
+  });
+  if (f === 'all') { activeFilters.clear(); }
+  else if (f === 'fav') { activeFilters.clear(); activeFilters.add('Favourites'); }
+  else { activeFilters.clear(); activeFilters.add(f); }
+  buildPills(); render();
+}
+
+function render() {
+  const q = (document.getElementById('q').value || '').toLowerCase().trim();
+  let rows = ALL.filter(d => {
+    if (activeFilters.size) {
+      const NET_FILTERS = ['Brandmeister','TGIF','FreeSTAR','FreeDMR'];
+      const netActive = NET_FILTERS.filter(n => activeFilters.has(n));
+      const netMatch = netActive.length === 0 || netActive.includes(d.net);
+      const hasNetMatch = !activeFilters.has('Has net') || d.hasNet;
+      const favMatch = !activeFilters.has('Favourites') || favs.has(d.tg + '|' + d.net);
+      if (!netMatch || !hasNetMatch || !favMatch) return false;
+    }
+    if (!q) return true;
+    return d.tg.includes(q) || d.name.toLowerCase().includes(q) || (d.netInfo||'').toLowerCase().includes(q);
+  });
+
+  rows.sort((a, b) => sortAsc ? Number(a.tg) - Number(b.tg) : Number(b.tg) - Number(a.tg));
+
+  document.getElementById('count-lbl').textContent = 'Showing ' + rows.length + ' of ' + ALL.length + ' talk groups';
+
+  const tbody = document.getElementById('tbody');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="4"><div class="empty">No talk groups match your search.</div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(d => {
+    const key = d.tg + '|' + d.net;
+    const isFav = favs.has(key);
+    return `<tr>
+      <td class="col-tg"><span class="tg-num">${d.tg}</span></td>
+      <td class="col-name name-cell">
+        ${d.name}${d.hasNet ? '<span class="net-tag">Net</span>' : ''}
+        ${d.netInfo ? `<div class="net-info">${d.netInfo}</div>` : ''}
+      </td>
+      <td class="col-net"><span class="badge ${badgeClass(d.net)}">${d.net}</span></td>
+      <td class="col-fav">
+        <button class="fav-btn${isFav?' on':''}" onclick="toggleFav('${key}')" aria-label="${isFav?'Remove from':'Add to'} favourites">${isFav?'★':'☆'}</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function toggleFav(key) {
+  favs.has(key) ? favs.delete(key) : favs.add(key);
+  saveFavs();
+  buildPills();
+  render();
+}
+
+/* ---- Repeater functions (RSGB database) ---- */
+
+const RPT_BANDS = ['2m','70cm','4m','6m','10m','23cm','13cm'];
+const MODE_LABELS = { A:'FM', D:'D-Star', F:'Fusion', M:'DMR', N:'NXDN', P:'P25', E:'TETRA', T:'TV', X:'Packet', B:'Beacon' };
+let rptData = [];        // cached repeater objects
+let currentView = 'home';  // 'home', 'tg', or 'rpt'
+let rptUserPos = null;   // {lat, lng, name}
+
+function switchView(v) {
+  const prev = currentView;
+  currentView = v;
+  document.getElementById('home-view').classList.toggle('hidden', v !== 'home');
+  document.getElementById('tg-view').classList.toggle('hidden', v !== 'tg');
+  document.getElementById('rpt-view').classList.toggle('hidden', v !== 'rpt');
+  document.getElementById('live-view').classList.toggle('hidden', v !== 'live');
+  // Top nav
+  ['home','tg','rpt-top','live-top'].forEach(id => {
+    const el = document.getElementById('nav-' + id);
+    if (el) el.classList.toggle('on', v === id || (v === 'tg' && id === 'tg') || (v === 'rpt' && id === 'rpt-top') || (v === 'live' && id === 'live-top'));
+  });
+  // Bottom nav
+  ['home-bot','tg-view','rpt-bot','live-bot','fav-bot'].forEach(id => {
+    const el = document.getElementById('nav-' + id);
+    if (el) el.classList.toggle('on', v === id || (v === 'tg' && id === 'tg-view') || (v === 'rpt' && id === 'rpt-bot') || (v === 'live' && id === 'live-bot'));
+  });
+  if (v === 'rpt' && rptData.length === 0) {
+    loadRepeaters();
+  }
+  if (v === 'tg') render();
+  if (v === 'live') { if (prev !== 'live') connectLive(); } else { disconnectLive(); }
+}
+
+function mToLatLng(loc) {
+  if (!loc || loc.length < 4) return null;
+  loc = loc.toUpperCase();
+  const a = 'A'.charCodeAt(0);
+  const z0 = '0'.charCodeAt(0);
+  const fLon = loc.charCodeAt(0) - a;
+  const fLat = loc.charCodeAt(1) - a;
+  const sLon = loc.charCodeAt(2) - z0;
+  const sLat = loc.charCodeAt(3) - z0;
+  if (fLon < 0 || fLon > 17 || fLat < 0 || fLat > 17 || sLon < 0 || sLon > 9 || sLat < 0 || sLat > 9) return null;
+  let lon = fLon * 20 + sLon * 2 - 180;
+  let lat = fLat * 10 + sLat * 1 - 90;
+  if (loc.length >= 6) {
+    const uLon = loc.charCodeAt(4) - a;
+    const uLat = loc.charCodeAt(5) - a;
+    if (uLon >= 0 && uLon < 24 && uLat >= 0 && uLat < 24) {
+      lon += (uLon + 0.5) * (2/24);
+      lat += (uLat + 0.5) * (1/24);
+    }
+  } else {
+    lon += 1;
+    lat += 0.5;
+  }
+  return { lat, lng: lon };
+}
+
+function modeDisplay(mc) {
+  if (!mc || !mc.length) return [{label:'?',cls:'md-?'}];
+  return mc.map(m => ({ label: MODE_LABELS[m] || m, cls: 'md-' + m }));
+}
+
+async function loadRepeaters() {
+  const rptStatus = document.getElementById('loc-status');
+  rptStatus.textContent = 'Loading repeater data…';
+  let cached;
+  try { cached = JSON.parse(localStorage.getItem('dmr-rpt-cache')); } catch(e) {}
+  if (cached && Array.isArray(cached) && cached.length > 100) {
+    rptData = cached;
+    rptStatus.textContent = rptData.length + ' repeaters loaded';
+    return;
+  }
+  if (!navigator.onLine && cached) {
+    rptData = cached;
+    rptStatus.textContent = rptData.length + ' repeaters (offline)';
+    return;
+  }
+  const all = [];
+  const results = await Promise.all(RPT_BANDS.map(band => {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 12000);
+    return fetch('https://api-beta.rsgb.online/band/' + band, { signal: ctrl.signal })
+      .then(r => { clearTimeout(timer); return r.ok ? r.json() : null; })
+      .catch(() => { clearTimeout(timer); return null; });
+  }));
+  results.forEach((j, idx) => {
+    if (!j || !j.data) return;
+    const band = RPT_BANDS[idx];
+    j.data.forEach(d => {
+      const ll = mToLatLng(d.locator);
+      if (!ll) return;
+      all.push({
+        cs: d.repeater, town: d.town, band: band,
+        tx: d.tx, rx: d.rx, ctcss: d.ctcss,
+        cc: d.ctcss > 0 ? d.ctcss : 0,
+        type: d.type, modeCodes: d.modeCodes,
+        status: d.status, locator: d.locator,
+        lat: ll.lat, lng: ll.lng, keeper: d.keeperCallsign,
+        freqTx: (d.tx / 1e6).toFixed(4),
+        freqRx: d.rx > 0 ? (d.rx / 1e6).toFixed(4) : null,
+        isDMR: d.modeCodes && d.modeCodes.indexOf('M') >= 0,
+        isFM: d.modeCodes && d.modeCodes.indexOf('A') >= 0
+      });
+    });
+  });
+  rptData = all;
+  try { localStorage.setItem('dmr-rpt-cache', JSON.stringify(all)); } catch(e) {}
+  rptStatus.textContent = all.length + ' repeaters loaded';
+}
+
+function haversine(lat1, lng1, lat2, lng2) {
+  const R = 3959; // miles
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+async function searchLocation() {
+  const q = document.getElementById('loc-q').value.trim();
+  if (!q) return;
+  const btn = document.getElementById('loc-search-btn');
+  const status = document.getElementById('loc-status');
+  btn.disabled = true;
+  status.textContent = 'Looking up location…';
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 7000);
+    const r = await fetch('https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(q) + '&format=json&countrycodes=gb&limit=1', {
+      signal: ctrl.signal,
+      headers: { 'Accept': 'application/json', 'User-Agent': 'UK-DMR-TalkGroups-App/1.0' }
+    });
+    clearTimeout(timer);
+    if (!r.ok) throw new Error();
+    const j = await r.json();
+    if (!j || !j.length) {
+      status.textContent = 'Location not found. Try a postcode or town.';
+      btn.disabled = false;
+      return;
+    }
+    rptUserPos = { lat: parseFloat(j[0].lat), lng: parseFloat(j[0].lon), name: j[0].display_name.split(',')[0] };
+    status.textContent = '';
+    renderRepeaters(rptUserPos.lat, rptUserPos.lng);
+  } catch(e) {
+    status.textContent = 'Geocoding failed. Check connection.';
+  }
+  btn.disabled = false;
+}
+
+function getGPS() {
+  if (!navigator.geolocation) {
+    document.getElementById('loc-status').textContent = 'Geolocation not available';
+    return;
+  }
+  const status = document.getElementById('loc-status');
+  status.textContent = 'Getting your location…';
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      rptUserPos = { lat: pos.coords.latitude, lng: pos.coords.longitude, name: 'Your location' };
+      status.textContent = '';
+      renderRepeaters(rptUserPos.lat, rptUserPos.lng);
+    },
+    err => {
+      status.textContent = 'GPS failed: ' + (err.code === 1 ? 'permission denied' : err.message);
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
+
+function renderRepeaters(centerLat, centerLng) {
+  const radius = parseInt(document.getElementById('radius-select').value) || 15;
+  const modeFilter = document.querySelector('input[name="mode-filter"]:checked');
+  const mode = modeFilter ? modeFilter.value : 'all';
+
+  let filtered = rptData.filter(r => {
+    if (r.status !== 'OPERATIONAL') return false;
+    const d = haversine(centerLat, centerLng, r.lat, r.lng);
+    r._dist = d;
+    if (d > radius) return false;
+    if (mode === 'fm' && !r.isFM) return false;
+    if (mode === 'dmr' && !r.isDMR) return false;
+    return true;
+  });
+
+  filtered.sort((a, b) => a._dist - b._dist);
+
+  document.getElementById('rpt-empty').style.display = 'none';
+  const wrap = document.getElementById('rpt-table-wrap');
+  const tbody = document.getElementById('rpt-tbody');
+
+  if (!filtered.length) {
+    wrap.style.display = 'none';
+    document.getElementById('rpt-empty').style.display = 'block';
+    document.getElementById('rpt-empty').textContent = 'No repeaters found within ' + radius + ' miles of ' + (rptUserPos ? rptUserPos.name : 'this location') + '.';
+    return;
+  }
+
+  wrap.style.display = 'block';
+  document.getElementById('rpt-count-lbl').textContent = filtered.length + ' repeater' + (filtered.length !== 1 ? 's' : '') + ' within ' + radius + ' miles';
+
+  tbody.innerHTML = filtered.map(r => {
+    const modes = modeDisplay(r.modeCodes);
+    const modeHtml = modes.map(m => '<span class="badge ' + m.cls + '">' + m.label + '</span>').join(' ');
+    const statusColor = r.status === 'OPERATIONAL' ? '#22c55e' : r.status === 'REDUCED OUTPUT' ? '#f59e0b' : '#6c757d';
+    return '<tr>' +
+      '<td class="rpt-col-dist"><span class="rpt-td-dist">' + r._dist.toFixed(1) + 'mi</span></td>' +
+      '<td class="rpt-col-cs"><span class="rpt-td-cs">' + r.cs + '</span></td>' +
+      '<td class="rpt-col-freq"><span class="rpt-td-freq">TX ' + r.freqTx + '</span>' + (r.freqRx ? '<br><span class="rpt-td-freq" style="color:var(--text3)">RX ' + r.freqRx + '</span>' : '') + '<br><span style="font-size:10px;color:var(--text3)">' + r.band + (r.ctcss > 0 ? ' · CT ' + r.ctcss : '') + '</span></td>' +
+      '<td class="rpt-col-city"><span class="rpt-city">' + r.town + '</span></td>' +
+      '<td class="rpt-col-info">' + modeHtml + ' <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:' + statusColor + ';vertical-align:middle" title="' + r.status + '"></span></td>' +
+      '</tr>';
+  }).join('');
+}
+
+function onRadiusChange() {
+  if (rptUserPos) renderRepeaters(rptUserPos.lat, rptUserPos.lng);
+}
+
+// Enter key handlers
+document.addEventListener('DOMContentLoaded', () => {
+  const homeQ = document.getElementById('home-q');
+  if (homeQ) {
+    homeQ.addEventListener('keydown', e => { if (e.key === 'Enter') homeSearch(); });
+  }
+  const locQ = document.getElementById('loc-q');
+  if (locQ) {
+    locQ.addEventListener('keydown', e => { if (e.key === 'Enter') searchLocation(); });
+  }
+  const radiusSel = document.getElementById('radius-select');
+  if (radiusSel) {
+    radiusSel.addEventListener('change', onRadiusChange);
+  }
+  // Mode radio buttons
+  document.querySelectorAll('input[name="mode-filter"]').forEach(el => {
+    el.addEventListener('change', () => { if (rptUserPos) renderRepeaters(rptUserPos.lat, rptUserPos.lng); });
+  });
+});
+
+// Mode pill badges
+const mdStyles = document.createElement('style');
+mdStyles.textContent = `
+.md-A  { background: #dbeafe; color: #1e40af; }
+.md-D  { background: #e0e7ff; color: #3730a3; }
+.md-F  { background: #fce7f3; color: #9d174d; }
+.md-M  { background: #dcfce7; color: #166534; }
+.md-N  { background: #fef3c7; color: #92400e; }
+.md-P  { background: #f3e8ff; color: #6b21a8; }
+.md-E  { background: #fce4ec; color: #c62828; }
+.md-T  { background: #e0f2f1; color: #00695c; }
+.md-X  { background: #f5f5f5; color: #424242; }
+.md-B  { background: #fff3e0; color: #e65100; }
+.md-?  { background: var(--surface2); color: var(--text3); }
+@media (prefers-color-scheme: dark) {
+  .md-A  { background: #1e3a5f; color: #93c5fd; }
+  .md-D  { background: #222a5e; color: #a5b4fc; }
+  .md-F  { background: #4a1942; color: #f9a8d4; }
+  .md-M  { background: #14532d; color: #86efac; }
+  .md-N  { background: #451a03; color: #fcd34d; }
+  .md-P  { background: #2e1065; color: #d8b4fe; }
+  .md-E  { background: #3e001f; color: #ef9a9a; }
+  .md-T  { background: #004d40; color: #80cbc4; }
+  .md-X  { background: #2c2c2c; color: #bdbdbd; }
+  .md-B  { background: #3e2723; color: #ffb74d; }
+}
+/* mode filter pills */
+.mode-pills { display:flex; gap:6px; margin-bottom:.75rem; flex-wrap:wrap; }
+.mode-pills label { position:relative; cursor:pointer; }
+.mode-pills input { position:absolute; opacity:0; width:0; height:0; }
+.mode-label { display:block; padding:4px 11px; border-radius:99px; border:1px solid var(--border); background:var(--surface); color:var(--text2); font-size:12px; }
+.mode-pills input:checked + .mode-label { background:var(--accent); color:#fff; border-color:var(--accent); }
+`;
+document.head.appendChild(mdStyles);
+
+/* ---- Live DMR Activity (Multi-Network) ---- */
+
+const NETWORKS = ['Brandmeister','TGIF','FreeSTAR','FreeDMR'];
+const UK_TG_PREFIXES = ['235', '27247'];
+const liveNets = {};
+const liveTimers = {};
+let liveEntries = [];
+let liveNetFilter = 'All';
+const liveSeen = {};
+let liveIntentionallyDisconnected = false;
+
+// --- Brandmeister (Socket.IO) ---
+function connectBM() {
+  const s = liveNets['Brandmeister'];
+  if (s && s.connected) return;
+  if (s) { s.connect(); return; }
+  if (typeof io === 'undefined') { setNetStat('Brandmeister','#6c757d','no io'); return; }
+  setNetStat('Brandmeister','#f59e0b','Connecting');
+  const sock = io('https://api.brandmeister.network', {
+    path: '/lh/socket.io', transports: ['websocket'],
+    reconnection: true, reconnectionDelay: 3000, timeout: 10000
+  });
+  liveNets['Brandmeister'] = sock;
+  sock.on('connect', () => {
+    setNetStat('Brandmeister','#22c55e','OK');
+    sock.emit('join', 'everything');
+    updateLiveSummary();
+  });
+  sock.on('mqtt', raw => {
+    try {
+      const payload = (raw && raw.payload) ? raw.payload : raw;
+      const msg = typeof payload === 'string' ? JSON.parse(payload) : payload;
+      if (!msg || !msg.SourceCall) return;
+      const now = Date.now() / 1000;
+      if (msg.Start && (now - msg.Start) > 120) return;
+      const sid = msg.SessionID || '';
+      if (sid && liveSeen['bm_'+sid] && (now - liveSeen['bm_'+sid]) < 30) return;
+      if (sid) liveSeen['bm_'+sid] = now;
+      const dstId = String(msg.DestinationID || '');
+      addEntry({
+        time: (msg.Start || now) * 1000, callsign: msg.SourceCall,
+        name: msg.SourceName || '', tg: dstId,
+        tgName: msg.DestinationName || msg.DestinationCall || '',
+        duration: msg.duration || 0, net: 'Brandmeister',
+        isUK: UK_TG_PREFIXES.some(p => dstId === p || dstId.startsWith(p))
+      });
+    } catch(e) { /* ignore */ }
+  });
+  sock.on('disconnect', () => setNetStat('Brandmeister','#6c757d','Disc'));
+  sock.on('connect_error', () => setNetStat('Brandmeister','#ef4444','Err'));
+}
+
+// --- TGIF (Socket.IO) ---
+function connectTGIF() {
+  const s = liveNets['TGIF'];
+  if (s && s.connected) return;
+  if (s) { s.connect(); return; }
+  if (typeof io === 'undefined') { setNetStat('TGIF','#6c757d','no io'); return; }
+  setNetStat('TGIF','#f59e0b','Connecting');
+  const sock = io('https://tgif.network', {
+    transports: ['websocket'], reconnection: true,
+    reconnectionDelay: 3000, timeout: 10000
+  });
+  liveNets['TGIF'] = sock;
+  sock.on('connect', () => {
+    setNetStat('TGIF','#f59e0b','Auth…');
+    sock.emit('handshake', '');
+  });
+  sock.on('status', code => {
+    if (code === 200) {
+      setNetStat('TGIF','#22c55e','OK');
+      sock.emit('cli-state', { scope: '*', page: 'lastheard', action: 'lh-backlog' });
+    } else {
+      setNetStat('TGIF','#ef4444','Auth fail');
+    }
+  });
+  sock.on('lastheard_backlog', data => {
+    if (!Array.isArray(data)) return;
+    const now = Date.now();
+    data.forEach(d => {
+      const ts = (d.timestamp || 0) * 1000;
+      if (ts && now - ts > 300000) return;
+      const sid = d.streamid || '';
+      if (sid && liveSeen['tg_'+sid] && (now / 1000 - liveSeen['tg_'+sid]) < 30) return;
+      if (sid) liveSeen['tg_'+sid] = now / 1000;
+      const tg = String(d.talkgroup || '');
+      addEntry({
+        time: ts || now, callsign: d.callsign || '?',
+        name: d.shortname || '', tg: tg,
+        tgName: d.talkgroup_name || '', duration: 0, net: 'TGIF',
+        isUK: UK_TG_PREFIXES.some(p => tg === p || tg.startsWith(p))
+      });
+    });
+  });
+  sock.on('lastheard', d => {
+    const now = Date.now();
+    const ts = (d.timestamp || 0) * 1000;
+    if (ts && now - ts > 300000) return;
+    const sid = d.streamid || '';
+    if (sid && liveSeen['tg_'+sid] && (now / 1000 - liveSeen['tg_'+sid]) < 30) return;
+    if (sid) liveSeen['tg_'+sid] = now / 1000;
+    const tg = String(d.talkgroup || '');
+    addEntry({
+      time: ts || now, callsign: d.callsign || '?',
+      name: d.shortname || '', tg: tg,
+      tgName: d.talkgroup_name || '', duration: 0, net: 'TGIF',
+      isUK: UK_TG_PREFIXES.some(p => tg === p || tg.startsWith(p))
+    });
+  });
+  sock.on('disconnect', () => setNetStat('TGIF','#6c757d','Disc'));
+  sock.on('connect_error', () => setNetStat('TGIF','#ef4444','Err'));
+}
+
+// --- FreeSTAR (WebSocket) ---
+function connectFS() {
+  if (liveNets['FreeSTAR'] && liveNets['FreeSTAR'].readyState === 1) return;
+  if (liveNets['FreeSTAR'] && liveNets['FreeSTAR'].readyState === 0) return;
+  setNetStat('FreeSTAR','#f59e0b','Connecting');
+  try {
+    const ws = new WebSocket('wss://dmr.freestar.network/wss/');
+    liveNets['FreeSTAR'] = ws;
+    ws.onopen = () => {
+      setNetStat('FreeSTAR','#22c55e','OK');
+      ws.send('conf,lsthrd_log');
+    };
+    ws.onmessage = e => {
+      if (!e.data || typeof e.data !== 'string') return;
+      const op = e.data[0];
+      const msg = e.data.slice(1);
+      if (op === 'h') parseFSHTML(msg);
+      else if (op === 'l') { /* log */ }
+      else if (op === 'q') { setNetStat('FreeSTAR','#6c757d','Closed'); }
+    };
+    ws.onclose = () => {
+      setNetStat('FreeSTAR','#6c757d','Disc');
+      if (currentView === 'live' && !liveIntentionallyDisconnected) {
+        liveTimers['FreeSTAR'] = setTimeout(() => { liveNets['FreeSTAR'] = null; connectFS(); }, 10000);
+      }
+    };
+    ws.onerror = () => { setNetStat('FreeSTAR','#ef4444','Err'); };
+  } catch(e) { setNetStat('FreeSTAR','#ef4444','Err'); }
+}
+
+function parseFSHTML(html) {
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  const rows = div.querySelectorAll('table tr');
+  const now = Date.now();
+  rows.forEach(row => {
+    const cells = row.querySelectorAll('td');
+    if (cells.length < 7) return;
+    if (row.querySelector('th')) return;
+    const dateStr = (cells[0]?.textContent || '').trim();
+    const timeStr = (cells[1]?.textContent || '').trim();
+    const callEl = cells[2]?.querySelector('a');
+    const call = callEl ? callEl.textContent.trim() : (cells[2]?.textContent || '').trim();
+    const name = (cells[3]?.textContent || '').trim();
+    const tg = (cells[4]?.textContent || '').trim();
+    const tgName = (cells[5]?.textContent || '').trim();
+    const durText = (cells[6]?.textContent || '').trim();
+    const dur = parseInt(durText) || 0;
+    const timeMs = new Date(dateStr + ' ' + timeStr + ' UTC').getTime();
+    if (!timeMs || now - timeMs > 300000) return;
+    const key = 'fs_' + call + '_' + tg + '_' + timeStr;
+    if (liveSeen[key] && (now / 1000 - liveSeen[key]) < 30) return;
+    liveSeen[key] = now / 1000;
+    addEntry({
+      time: timeMs, callsign: call, name: name,
+      tg: tg, tgName: tgName, duration: dur, net: 'FreeSTAR',
+      isUK: UK_TG_PREFIXES.some(p => tg === p || tg.startsWith(p))
+    });
+  });
+}
+
+// --- FreeDMR (WebSocket) ---
+function connectFD() {
+  if (liveNets['FreeDMR'] && liveNets['FreeDMR'].readyState === 1) return;
+  if (liveNets['FreeDMR'] && liveNets['FreeDMR'].readyState === 0) return;
+  setNetStat('FreeDMR','#f59e0b','Connecting');
+  try {
+    const ws = new WebSocket('ws://87.117.229.51:9001');
+    liveNets['FreeDMR'] = ws;
+    ws.onopen = () => { setNetStat('FreeDMR','#22c55e','OK'); };
+    ws.onmessage = e => {
+      if (!e.data || typeof e.data !== 'string') return;
+      const op = e.data[0];
+      const msg = e.data.slice(1);
+      if (op === 'd') parseFDHTML(msg);
+      else if (op === 'l') { /* log */ }
+      else if (op === 'q') { setNetStat('FreeDMR','#6c757d','Closed'); }
+    };
+    ws.onclose = () => {
+      setNetStat('FreeDMR','#6c757d','Disc');
+      if (currentView === 'live' && !liveIntentionallyDisconnected) {
+        liveTimers['FreeDMR'] = setTimeout(() => { liveNets['FreeDMR'] = null; connectFD(); }, 15000);
+      }
+    };
+    ws.onerror = () => { setNetStat('FreeDMR','#ef4444','Err'); };
+  } catch(e) { setNetStat('FreeDMR','#ef4444','Err'); }
+}
+
+function parseFDHTML(html) {
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  const rows = div.querySelectorAll('table tbody tr, table tr');
+  const now = Date.now();
+  rows.forEach(row => {
+    const cells = row.querySelectorAll('td');
+    if (cells.length < 4) return;
+    const timeText = (cells[0]?.textContent || '').trim();
+    const call = (cells[1]?.textContent || '').trim();
+    const tgRaw = (cells[2]?.textContent || '').trim();
+    const durText = (cells[3]?.textContent || '').trim();
+    if (!call || call === 'Callsign' || call.includes('Transmission')) return;
+    const timeMs = new Date(timeText + ' UTC').getTime();
+    if (timeMs && now - timeMs > 300000) return;
+    const tg = tgRaw.replace(/^TG/i, '');
+    const dur = parseInt(durText) || 0;
+    const key = 'fd_' + call + '_' + tg + '_' + timeText;
+    if (liveSeen[key] && (now / 1000 - liveSeen[key]) < 30) return;
+    liveSeen[key] = now / 1000;
+    addEntry({
+      time: timeMs || now, callsign: call, name: '', tg: tg,
+      tgName: '', duration: dur, net: 'FreeDMR',
+      isUK: UK_TG_PREFIXES.some(p => tg === p || tg.startsWith(p))
+    });
+  });
+}
+
+// --- Shared helpers ---
+function addEntry(e) {
+  liveEntries.unshift(e);
+  if (liveEntries.length > 200) liveEntries.pop();
+  renderLive();
+}
+
+function setNetStat(net, color, text) {
+  const id = {
+    'Brandmeister':'live-status-bm','TGIF':'live-status-tgif',
+    'FreeSTAR':'live-status-fs','FreeDMR':'live-status-fd'
+  }[net];
+  const el = document.getElementById(id);
+  if (el) el.style.background = color;
+  updateLiveSummary();
+}
+
+function updateLiveSummary() {
+  const names = [];
+  ['Brandmeister','TGIF','FreeSTAR','FreeDMR'].forEach(n => {
+    const id = {'Brandmeister':'live-status-bm','TGIF':'live-status-tgif',
+      'FreeSTAR':'live-status-fs','FreeDMR':'live-status-fd'}[n];
+    const el = document.getElementById(id);
+    if (el && el.style.background === 'rgb(34, 197, 94)') names.push({'Brandmeister':'BM','TGIF':'TGIF','FreeSTAR':'FS','FreeDMR':'FD'}[n]);
+  });
+  const el = document.getElementById('live-status-summary');
+  if (el) el.textContent = names.length ? names.join(' + ') + ' connected' : 'Disconnected';
+}
+
+function connectLive() {
+  if (typeof io === 'undefined' && typeof WebSocket === 'undefined') {
+    document.getElementById('live-status-summary').textContent = 'No WebSocket support';
+    return;
+  }
+  connectBM();
+  connectTGIF();
+  connectFS();
+  connectFD();
+  buildLivePills();
+}
+
+function disconnectLive() {
+  liveIntentionallyDisconnected = true;
+  Object.keys(liveTimers).forEach(k => { clearTimeout(liveTimers[k]); delete liveTimers[k]; });
+  Object.entries(liveNets).forEach(([net, sock]) => {
+    if (sock) {
+      if (sock.close) sock.close();
+      else if (sock.disconnect) sock.disconnect();
+    }
+    setNetStat(net, '#6c757d', '');
+  });
+  liveNets['Brandmeister'] = null;
+  liveNets['TGIF'] = null;
+  liveNets['FreeSTAR'] = null;
+  liveNets['FreeDMR'] = null;
+  setTimeout(() => { liveIntentionallyDisconnected = false; }, 500);
+}
+
+function buildLivePills() {
+  const container = document.getElementById('live-network-pills');
+  if (!container) return;
+  const nets = ['All','Brandmeister','TGIF','FreeSTAR','FreeDMR'];
+  container.innerHTML = nets.map(n =>
+    '<button class="pill' + (liveNetFilter === n ? ' on' : '') + '" onclick="setLiveNetFilter(\'' + n + '\')">' + n +
+    (n === 'All' ? ' <span class="cnt" id="live-all-cnt">' + liveEntries.length + '</span>' :
+     ' <span class="cnt" id="live-cnt-' + n + '">' + liveEntries.filter(e => e.net === n).length + '</span>') +
+    '</button>'
+  ).join('');
+}
+
+function setLiveNetFilter(net) {
+  liveNetFilter = net;
+  buildLivePills();
+  renderLive();
+}
+
+function renderLive() {
+  const allFilter = document.querySelector('input[name="live-filter"]:checked')?.value === 'all';
+  const net = liveNetFilter;
+  let rows = liveEntries;
+  if (net !== 'All') rows = rows.filter(e => e.net === net);
+  if (!allFilter) rows = rows.filter(e => e.isUK);
+  document.getElementById('live-count').textContent = rows.length + ' entries';
+  buildLivePills();
+  const tbody = document.getElementById('live-tbody');
+  const wrap = document.getElementById('live-table-wrap');
+  const empty = document.getElementById('live-empty');
+  if (!rows.length) {
+    tbody.innerHTML = '';
+    if (wrap) wrap.style.display = 'none';
+    if (empty) empty.style.display = 'block';
+    return;
+  }
+  if (wrap) wrap.style.display = 'block';
+  if (empty) empty.style.display = 'none';
+  tbody.innerHTML = rows.map(e => {
+    const s = Math.floor((Date.now() - e.time) / 1000);
+    const ts = s < 5 ? 'now' : s < 60 ? s + 's' : Math.floor(s/60) + 'm';
+    const dur = e.duration > 0 ? (e.duration < 60 ? e.duration + 's' : Math.floor(e.duration/60) + 'm') : '—';
+    const active = s < 8 ? '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#22c55e;margin-right:5px;animation:blink 1s infinite"></span>' : '';
+    const bc = {Brandmeister:'bm',TGIF:'tgif',FreeSTAR:'fs',FreeDMR:'fd'}[e.net] || 'bm';
+    return '<tr><td style="font-size:12px;color:var(--text3);font-family:monospace;white-space:nowrap">' + active + ts +
+      '</td><td style="font-weight:600;font-family:monospace;font-size:13px">' + e.callsign +
+      (e.name ? '<br><span style="font-size:10px;color:var(--text3)">' + e.name + '</span>' : '') +
+      '</td><td style="font-size:13px">TG ' + e.tg +
+      (e.tgName ? '<br><span style="font-size:10px;color:var(--text3)">' + e.tgName + '</span>' : '') +
+      '</td><td style="font-size:12px;color:var(--text2)">' + dur +
+      '</td><td>' + (e.net === 'Brandmeister' && e.tg
+        ? '<button class="listen-btn" data-tg="' + e.tg + '" onclick="toggleListening(this,\'' + e.tg + '\')" title="Listen to TG ' + e.tg + '">▶</button>'
+        : '<span class="listen-na" title="Not available">—</span>') +
+      '</td><td><span class="badge ' + bc + '">' + e.net + '</span></td></tr>';
+  }).join('');
+}
+
+// Live filter changes
+document.addEventListener('change', e => {
+  if (e.target?.name === 'live-filter') renderLive();
+});
+
+// Offline detection
+window.addEventListener('offline', () => {
+  document.getElementById('offlinebar').style.display = 'block';
+});
+window.addEventListener('online', () => {
+  document.getElementById('offlinebar').style.display = 'none';
+  loadBM();
+});
+
+// PWA install prompt
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('install-btn').style.display = 'inline-block';
+});
+document.getElementById('install-btn').addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  if (outcome === 'accepted') document.getElementById('install-btn').style.display = 'none';
+  deferredPrompt = null;
+});
+
+// Service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+// Spotter audio player — Brandmeister Hoseline protocol (MessagePack + "spotter" subprotocol)
+const SPOTTER_URL = 'wss://hose.brandmeister.network/spotter/';
+const SPOTTER_TOKEN = 'test:test';
+const ST_JOIN = 1, ST_LEAVE = 2, ST_CALL_START = 11, ST_CALL_END = 13, ST_AUDIO = 20, ST_ALIAS = 21;
+// μ-law decode lookup (matches Brandmeister Hoseline client exactly)
+const _wy = [0, 132, 396, 924, 1980, 4092, 8316, 16764];
+const ulawTable = new Int16Array(256);
+for (let i = 0; i < 256; i++) {
+  let e = ~i, t = 128 & e, n = e >> 4 & 7, r = 15 & e, o = _wy[n] + (r << n + 3);
+  ulawTable[i] = t ? -o : o;
+}
+let spotterWS = null, spotterTG = null, audioCtx = null, gainNode = null;
+let isListening = false, audioQueue = [], isPlaying = false, silenceTimer = null, nextPlayTime = 0;
+
+function toggleListening(btn, tg) {
+  if (isListening && spotterTG === tg) { stopListening(); return; }
+  startListening(tg);
+}
+
+function startListening(tg) {
+  stopListening();
+  spotterTG = tg;
+  const bar = document.getElementById('spotter-bar');
+  const label = document.getElementById('spotter-label');
+  const status = document.getElementById('spotter-status');
+  const icon = document.getElementById('spotter-icon');
+  bar.classList.add('active');
+  label.textContent = 'TG ' + tg;
+  status.textContent = 'Connecting…';
+  icon.style.animation = 'pulse 1.5s infinite';
+  document.querySelectorAll('.listen-btn.active').forEach(b => b.classList.remove('active'));
+  document.querySelector('.listen-btn[data-tg="' + tg + '"]')?.classList.add('active');
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)({sampleRate:8000});
+    audioCtx.resume();
+    gainNode = audioCtx.createGain();
+    gainNode.gain.value = 2.0;
+    gainNode.connect(audioCtx.destination);
+  } catch(e) { status.textContent = 'Audio unavailable'; return; }
+  if (!window.MessagePack) { status.textContent = 'Codec not loaded'; return; }
+  spotterWS = new WebSocket(SPOTTER_URL + '?token=' + SPOTTER_TOKEN, 'spotter');
+  spotterWS.binaryType = 'arraybuffer';
+  spotterWS.onopen = () => {
+    status.textContent = 'Connected';
+    spotterWS.send(window.MessagePack.encode([ST_JOIN, [parseInt(tg)]]));
+    isListening = true;
+  };
+  spotterWS.onmessage = (event) => {
+    try {
+      const msg = window.MessagePack.decode(new Uint8Array(event.data));
+      if (msg[0] === ST_AUDIO) {
+        status.textContent = 'Receiving';
+        const raw = msg[1];
+        const samples = new Int16Array(raw.length);
+        for (let i = 0; i < raw.length; i++) samples[i] = ulawTable[raw[i]];
+        audioQueue.push(samples);
+        processAudioQueue();
+        clearTimeout(silenceTimer);
+        silenceTimer = setTimeout(() => { status.textContent = 'Waiting…'; }, 5000);
+      } else if (msg[0] === ST_CALL_START) {
+        status.textContent = msg[1] + ' → TG ' + msg[2];
+      }
+    } catch(err) {}
+  };
+  spotterWS.onerror = () => { status.textContent = 'Connection failed'; };
+  spotterWS.onclose = () => {
+    if (isListening) {
+      status.textContent = 'Disconnected — reconnecting…';
+      setTimeout(() => { if (isListening) startListening(tg); }, 3000);
+    }
+  };
+}
+
+function processAudioQueue() {
+  if (!audioCtx || !isListening) { isPlaying = false; return; }
+  isPlaying = true;
+  while (audioQueue.length) {
+    const samples = audioQueue.shift();
+    if (!samples || !samples.length) continue;
+    const dur = samples.length / 8000;
+    const buf = audioCtx.createBuffer(1, samples.length, 8000);
+    const ch = buf.getChannelData(0);
+    for (let i = 0; i < samples.length; i++) ch[i] = samples[i] / 32768;
+    const src = audioCtx.createBufferSource();
+    src.buffer = buf;
+    src.connect(gainNode);
+    const now = audioCtx.currentTime;
+    if (nextPlayTime < now) nextPlayTime = now;
+    src.start(nextPlayTime);
+    nextPlayTime += dur;
+  }
+}
+
+function stopListening() {
+  isListening = false; isPlaying = false;
+  clearTimeout(silenceTimer);
+  audioQueue = [];
+  nextPlayTime = 0;
+  document.querySelectorAll('.listen-btn.active').forEach(b => b.classList.remove('active'));
+  document.getElementById('spotter-bar').classList.remove('active');
+  if (spotterWS) {
+    try { spotterWS.send(window.MessagePack.encode([ST_LEAVE, [parseInt(spotterTG)]])); } catch(e) {}
+    spotterWS.close(); spotterWS = null;
+  }
+  if (audioCtx) { audioCtx.close(); audioCtx = null; }
+  spotterTG = null;
+}
+
+loadBM();
+</script>
+</body>
+</html>
