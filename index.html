@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="M6YSM — UK amateur radio tools: DMR talk groups (Brandmeister, TGIF, FreeSTAR, FreeDMR) and repeater finder (FM, DMR, D-Star, Fusion).">
+<meta name="description" content="M6YSM — UK amateur radio tools: DMR talk groups (Brandmeister, TGIF, FreeSTAR) and repeater finder (FM, DMR, D-Star, Fusion).">
 <meta name="theme-color" content="#1a56db">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -148,12 +148,10 @@
   .bm  { background: #dbeafe; color: #1e40af; }
   .tgif { background: #fce7f3; color: #9d174d; }
   .fs  { background: #dcfce7; color: #166534; }
-  .fd  { background: #fef3c7; color: #92400e; }
   @media (prefers-color-scheme: dark) {
     .bm  { background: #1e3a5f; color: #93c5fd; }
     .tgif { background: #4a1942; color: #f9a8d4; }
     .fs  { background: #14532d; color: #86efac; }
-    .fd  { background: #451a03; color: #fcd34d; }
     .listen-btn { background: #3b82f6; }
   }
   .fav-btn { background: none; border: none; font-size: 17px; cursor: pointer; color: var(--text3); line-height: 1; padding: 2px; }
@@ -338,12 +336,12 @@
     <div class="feature-card" onclick="switchView('tg'); setMobileFilter('all')">
       <div class="feature-card-icon" style="background:#dbeafe;color:#1e40af">📞</div>
       <h3>DMR Talk Groups</h3>
-      <p>Browse UK talk groups across Brandmeister, TGIF, FreeSTAR and FreeDMR. Search, filter by network, and save favourites.</p>
+      <p>Browse UK talk groups across Brandmeister, TGIF and FreeSTAR. Search, filter by network, and save favourites.</p>
     </div>
     <div class="feature-card" onclick="switchView('live')">
       <div class="feature-card-icon" style="background:#fce7f3;color:#9d174d">🔴</div>
       <h3>Live Activity</h3>
-      <p>Watch live DMR transmissions across Brandmeister, TGIF, FreeSTAR and FreeDMR networks in real time.</p>
+      <p>Watch live DMR transmissions across Brandmeister, TGIF and FreeSTAR networks in real time.</p>
     </div>
     <div class="feature-card" id="home-net-tile" onclick="switchView('nets')">
       <div class="feature-card-icon" style="background:#fff3cd;color:#856404">🌐</div>
@@ -351,6 +349,16 @@
       <p id="net-tile-call" style="font-weight:600;font-family:monospace;font-size:15px">—</p>
       <p id="net-tile-tg" style="font-size:12px;color:var(--text3)"></p>
       <p id="net-tile-status" style="font-size:11px;color:var(--text3)">Waiting for activity…</p>
+    </div>
+    <div class="feature-card" onclick="switchView('contest')">
+      <div class="feature-card-icon" style="background:#fef3c7;color:#92400e">🏆</div>
+      <h3>Contest Calendar</h3>
+      <p>UK amateur radio contest schedule. Filter by mode, view upcoming contests, and plan your operating activities.</p>
+    </div>
+    <div class="feature-card" onclick="switchView('spot')">
+      <div class="feature-card-icon" style="background:#e0e7ff;color:#3730a3">📍</div>
+      <h3>SOTA & POTA Spots</h3>
+      <p>Live activation spots from Summits on the Air and Parks on the Air. Track activators and plan your contacts.</p>
     </div>
   </div>
 
@@ -376,11 +384,6 @@
       <div class="stat-val" id="s-fs">4</div>
       <div class="stat-sub">UK curated</div>
     </div>
-    <div class="stat">
-      <div class="stat-label">FreeDMR</div>
-      <div class="stat-val" id="s-fd">9</div>
-      <div class="stat-sub">UK curated</div>
-    </div>
   </div>
 
   <div class="errbar" id="errbar">⚠️ Brandmeister API unavailable — showing cached data. Check your connection.</div>
@@ -397,7 +400,7 @@
     </button>
   </div>
 
-  <div class="pills" id="pills"></div>
+  <div class="mode-pills" id="pills"></div>
 
   <div class="statusbar">
     <span id="count-lbl"></span>
@@ -475,13 +478,12 @@
       <span id="live-status-bm" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6c757d" title="Brandmeister"></span>
       <span id="live-status-tgif" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6c757d" title="TGIF"></span>
       <span id="live-status-fs" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6c757d" title="FreeSTAR"></span>
-      <span id="live-status-fd" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#6c757d" title="FreeDMR"></span>
       <span style="font-size:12px;color:var(--text3)" id="live-status-summary">Disconnected</span>
       <span style="margin-left:auto;font-size:12px;color:var(--text3)" id="live-count">0 entries</span>
     </div>
   </div>
 
-  <div class="pills" id="live-network-pills"></div>
+  <div class="mode-pills" id="live-network-pills"></div>
 
   <div class="mode-pills">
     <label><input type="radio" name="live-filter" value="uk" checked><span class="mode-label">UK only</span></label>
@@ -514,8 +516,14 @@
 </div>
 
 <div id="nets-view" class="view hidden">
-  <h2 style="margin:0 0 .75rem;font-size:18px">Upcoming Nets</h2>
-  <div id="nets-empty" style="display:none;text-align:center;padding:2rem;color:var(--text3)">No nets scheduled</div>
+  <h2 style="margin:0 0 .75rem;font-size:18px">UK Net Directory</h2>
+
+  <div class="mode-pills" id="nets-day-pills"></div>
+  <div class="mode-pills" id="nets-net-pills"></div>
+
+  <div id="nets-count" style="font-size:12px;color:var(--text3);margin-bottom:.5rem"></div>
+  <div id="nets-empty" style="display:none;text-align:center;padding:2rem;color:var(--text3)">No nets match your filters</div>
+  
   <div style="overflow-x:auto">
     <table style="width:100%;border-collapse:collapse">
       <thead>
@@ -627,10 +635,6 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2"/></svg>
       Spots
     </button>
-    <button onclick="switchView('tg'); setMobileFilter('fav')" id="nav-fav-bot">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>
-    Favs
-  </button>
 </nav>
 
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
@@ -650,17 +654,6 @@ const STATIC = [
   {tg:"2350",name:"FreeSTAR UK Chat",net:"FreeSTAR"},
   {tg:"23550",name:"FreeSTAR Hub",net:"FreeSTAR"},
   {tg:"23426",name:"DV Scotland / FreeSTAR Net",net:"FreeSTAR",hasNet:true,netInfo:"Cross-network net — also accessible via TGIF and Phoenix UK · check dvsph.net for schedule"},
-  {tg:"2351",name:"UK Wide",net:"FreeDMR"},
-  {tg:"2355",name:"Scotland Chat",net:"FreeDMR"},
-  {tg:"2356",name:"Wales Chat",net:"FreeDMR"},
-  {tg:"2358",name:"London",net:"FreeDMR"},
-  {tg:"2359",name:"Kernow",net:"FreeDMR"},
-  {tg:"23510",name:"England",net:"FreeDMR"},
-  {tg:"23520",name:"Wales",net:"FreeDMR"},
-  {tg:"23530",name:"Scotland",net:"FreeDMR"},
-  {tg:"23540",name:"Northern Ireland",net:"FreeDMR"},
-  {tg:"23556",name:"UK Wide Multimode",net:"FreeDMR",hasNet:true,netInfo:"DVSPh Coast to Coast Net — Saturday 20:00 local · Also via D-Star XLX600D, YSF, AllStar 53937"},
-  {tg:"950",name:"SWC (South West Cluster)",net:"FreeDMR",hasNet:true,netInfo:"SWC 950 Net — Tuesday 20:00 local · Weekly net hosted by Graham G1ZTJ via SWC repeaters"},
 ];
 
 const BM_FALLBACK = [
@@ -720,7 +713,7 @@ function saveFavs() {
 }
 
 function badgeClass(net) {
-  return {Brandmeister:'bm', TGIF:'tgif', FreeSTAR:'fs', FreeDMR:'fd'}[net] || 'bm';
+  return {Brandmeister:'bm', TGIF:'tgif', FreeSTAR:'fs'}[net] || 'bm';
 }
 
 async function loadBM() {
@@ -788,7 +781,7 @@ function finish() {
   if (homePills) {
     const nets = {};
     ALL.forEach(d => { nets[d.net] = (nets[d.net]||0) + 1; });
-    ['Brandmeister','TGIF','FreeSTAR','FreeDMR'].forEach(label => {
+    ['Brandmeister','TGIF','FreeSTAR'].forEach(label => {
       if (!nets[label]) return;
       const btn = document.createElement('button');
       btn.textContent = label + ' (' + nets[label] + ')';
@@ -800,17 +793,22 @@ function finish() {
 
 
 function buildPills() {
+  const NET_COLORS = { 'Brandmeister': '#1e40af', 'TGIF': '#9d174d', 'FreeSTAR': '#166534', 'Favourites': '#f59e0b' };
   const counts = {};
   ALL.forEach(d => { counts[d.net] = (counts[d.net]||0)+1; });
   const hasNetCount = ALL.filter(d => d.hasNet).length;
-  const order = ['Brandmeister','TGIF','FreeSTAR','FreeDMR','Has net','Favourites'];
+  const order = ['Brandmeister','TGIF','FreeSTAR','Has net','Favourites'];
   const f = document.getElementById('pills');
   f.innerHTML = '';
   order.forEach(label => {
     const n = label === 'Has net' ? hasNetCount : label === 'Favourites' ? favs.size : (counts[label]||0);
     const el = document.createElement('button');
-    el.className = 'pill' + (label === 'Favourites' ? ' fav-pill' : '') + (activeFilters.has(label) ? ' on' : '');
-    el.innerHTML = label + '<span class="cnt">' + n + '</span>';
+    const isActive = activeFilters.has(label);
+    const color = NET_COLORS[label];
+    el.className = 'mode-pill' + (isActive ? ' on' : '');
+    el.style.color = isActive && color ? color : '';
+    el.innerHTML = (color && label !== 'Has net' ? '<span class="mode-dot" style="background:' + color + '"></span>' : '') +
+      label + '<span class="mode-cnt">' + n + '</span>';
     el.onclick = () => {
       activeFilters.has(label) ? activeFilters.delete(label) : activeFilters.add(label);
       buildPills(); render();
@@ -843,7 +841,7 @@ function render() {
   const q = (document.getElementById('q').value || '').toLowerCase().trim();
   let rows = ALL.filter(d => {
     if (activeFilters.size) {
-      const NET_FILTERS = ['Brandmeister','TGIF','FreeSTAR','FreeDMR'];
+      const NET_FILTERS = ['Brandmeister','TGIF','FreeSTAR'];
       const netActive = NET_FILTERS.filter(n => activeFilters.has(n));
       const netMatch = netActive.length === 0 || netActive.includes(d.net);
       const hasNetMatch = !activeFilters.has('Has net') || d.hasNet;
@@ -922,7 +920,7 @@ function switchView(v) {
   }
   if (v === 'tg') render();
   if (v === 'live') { if (prev !== 'live') connectLive(); } else { disconnectLive(); }
-  if (v === 'nets') renderNets();
+  if (v === 'nets') { buildNetDayPills(); buildNetNetPills(); renderNetDirectory(); }
   if (v === 'contest' && allContests.length === 0) fetchContests();
   if (v === 'spot' && spotData.length === 0) fetchSpots();
 }
@@ -1202,7 +1200,7 @@ document.head.appendChild(mdStyles);
 
 /* ---- Live DMR Activity (Multi-Network) ---- */
 
-const NETWORKS = ['Brandmeister','TGIF','FreeSTAR','FreeDMR'];
+const NETWORKS = ['Brandmeister','TGIF','FreeSTAR'];
 const UK_TG_PREFIXES = ['235', '27247'];
 const liveNets = {};
 const liveTimers = {};
@@ -1284,8 +1282,7 @@ function connectTGIF() {
   if (typeof io === 'undefined') { setNetStat('TGIF','#6c757d','no io'); return; }
   setNetStat('TGIF','#f59e0b','Connecting');
   const sock = io('https://tgif.network', {
-    transports: ['websocket'], reconnection: true,
-    reconnectionDelay: 3000, timeout: 10000
+    reconnection: true, reconnectionDelay: 3000, timeout: 10000
   });
   liveNets['TGIF'] = sock;
   sock.on('connect', () => {
@@ -1398,61 +1395,6 @@ function parseFSHTML(html) {
   });
 }
 
-// --- FreeDMR (WebSocket) ---
-function connectFD() {
-  if (liveNets['FreeDMR'] && liveNets['FreeDMR'].readyState === 1) return;
-  if (liveNets['FreeDMR'] && liveNets['FreeDMR'].readyState === 0) return;
-  setNetStat('FreeDMR','#f59e0b','Connecting');
-  try {
-    const ws = new WebSocket('ws://87.117.229.51:9001');
-    liveNets['FreeDMR'] = ws;
-    ws.onopen = () => { setNetStat('FreeDMR','#22c55e','OK'); };
-    ws.onmessage = e => {
-      if (!e.data || typeof e.data !== 'string') return;
-      const op = e.data[0];
-      const msg = e.data.slice(1);
-      if (op === 'd') parseFDHTML(msg);
-      else if (op === 'l') { /* log */ }
-      else if (op === 'q') { setNetStat('FreeDMR','#6c757d','Closed'); }
-    };
-    ws.onclose = () => {
-      setNetStat('FreeDMR','#6c757d','Disc');
-      if (currentView === 'live' && !liveIntentionallyDisconnected) {
-        liveTimers['FreeDMR'] = setTimeout(() => { liveNets['FreeDMR'] = null; connectFD(); }, 15000);
-      }
-    };
-    ws.onerror = () => { setNetStat('FreeDMR','#ef4444','Err'); };
-  } catch(e) { setNetStat('FreeDMR','#ef4444','Err'); }
-}
-
-function parseFDHTML(html) {
-  const div = document.createElement('div');
-  div.innerHTML = html;
-  const rows = div.querySelectorAll('table tbody tr, table tr');
-  const now = Date.now();
-  rows.forEach(row => {
-    const cells = row.querySelectorAll('td');
-    if (cells.length < 4) return;
-    const timeText = (cells[0]?.textContent || '').trim();
-    const call = (cells[1]?.textContent || '').trim();
-    const tgRaw = (cells[2]?.textContent || '').trim();
-    const durText = (cells[3]?.textContent || '').trim();
-    if (!call || call === 'Callsign' || call.includes('Transmission')) return;
-    const timeMs = new Date(timeText + ' UTC').getTime();
-    if (timeMs && now - timeMs > 300000) return;
-    const tg = tgRaw.replace(/^TG/i, '');
-    const dur = parseInt(durText) || 0;
-    const key = 'fd_' + call + '_' + tg + '_' + timeText;
-    if (liveSeen[key] && (now / 1000 - liveSeen[key]) < 30) return;
-    liveSeen[key] = now / 1000;
-    addEntry({
-      time: timeMs || now, callsign: call, name: '', tg: tg,
-      tgName: '', duration: dur, net: 'FreeDMR',
-      isUK: UK_TG_PREFIXES.some(p => tg === p || tg.startsWith(p))
-    });
-  });
-}
-
 // --- Shared helpers ---
 function addEntry(e) {
   liveEntries.unshift(e);
@@ -1463,57 +1405,198 @@ function addEntry(e) {
 // Regular net schedule (day: 0=Sun, 1=Mon…6=Sat)
 const netSchedule = [
   // --- Daily ---
-  { day: 0, hour: 17, min: 30, tg: '27247', name: 'NWAG Early Evening Net', net: 'Brandmeister' },
-  { day: 1, hour: 17, min: 30, tg: '27247', name: 'NWAG Early Evening Net', net: 'Brandmeister' },
-  { day: 2, hour: 17, min: 30, tg: '27247', name: 'NWAG Early Evening Net', net: 'Brandmeister' },
-  { day: 3, hour: 17, min: 30, tg: '27247', name: 'NWAG Early Evening Net', net: 'Brandmeister' },
-  { day: 4, hour: 17, min: 30, tg: '27247', name: 'NWAG Early Evening Net', net: 'Brandmeister' },
-  { day: 5, hour: 17, min: 30, tg: '27247', name: 'NWAG Early Evening Net', net: 'Brandmeister' },
-  { day: 6, hour: 17, min: 30, tg: '27247', name: 'NWAG Early Evening Net', net: 'Brandmeister' },
+  { day: 0, hour: 17, min: 30, tg: '27247', name: 'NWAG Early Evening Net', net: 'Brandmeister', desc: 'North West Activity Group — daily check-in' },
+  { day: 1, hour: 17, min: 30, tg: '27247', name: 'NWAG Early Evening Net', net: 'Brandmeister', desc: 'North West Activity Group — daily check-in' },
+  { day: 2, hour: 17, min: 30, tg: '27247', name: 'NWAG Early Evening Net', net: 'Brandmeister', desc: 'North West Activity Group — daily check-in' },
+  { day: 3, hour: 17, min: 30, tg: '27247', name: 'NWAG Early Evening Net', net: 'Brandmeister', desc: 'North West Activity Group — daily check-in' },
+  { day: 4, hour: 17, min: 30, tg: '27247', name: 'NWAG Early Evening Net', net: 'Brandmeister', desc: 'North West Activity Group — daily check-in' },
+  { day: 5, hour: 17, min: 30, tg: '27247', name: 'NWAG Early Evening Net', net: 'Brandmeister', desc: 'North West Activity Group — daily check-in' },
+  { day: 6, hour: 17, min: 30, tg: '27247', name: 'NWAG Early Evening Net', net: 'Brandmeister', desc: 'North West Activity Group — daily check-in' },
+  { day: 0, hour: 8, min: 0, tg: '2350', name: 'Morning Coffee Net', net: 'Brandmeister', desc: 'Casual morning chat — all welcome' },
+  { day: 1, hour: 8, min: 0, tg: '2350', name: 'Morning Coffee Net', net: 'Brandmeister', desc: 'Casual morning chat — all welcome' },
+  { day: 2, hour: 8, min: 0, tg: '2350', name: 'Morning Coffee Net', net: 'Brandmeister', desc: 'Casual morning chat — all welcome' },
+  { day: 3, hour: 8, min: 0, tg: '2350', name: 'Morning Coffee Net', net: 'Brandmeister', desc: 'Casual morning chat — all welcome' },
+  { day: 4, hour: 8, min: 0, tg: '2350', name: 'Morning Coffee Net', net: 'Brandmeister', desc: 'Casual morning chat — all welcome' },
+  { day: 5, hour: 8, min: 0, tg: '2350', name: 'Morning Coffee Net', net: 'Brandmeister', desc: 'Casual morning chat — all welcome' },
+  { day: 6, hour: 8, min: 0, tg: '2350', name: 'Morning Coffee Net', net: 'Brandmeister', desc: 'Casual morning chat — all welcome' },
 
   // --- Sunday ---
-  { day: 0, hour: 10, min: 0, tg: '23559', name: 'GB2RS News Relay', net: 'Brandmeister' },
-  { day: 0, hour: 15, min: 0, tg: '23531', name: 'RAYNET-UK Weekly Activity Net', net: 'Brandmeister' },
-  { day: 0, hour: 18, min: 30, tg: '235', name: '235 Alive Net', net: 'Brandmeister' },
-  { day: 0, hour: 19, min: 0, tg: '2353', name: 'UK DX Net', net: 'Brandmeister' },
-  { day: 0, hour: 19, min: 0, tg: '23516', name: 'Jersey ARS DMR Net', net: 'Brandmeister' },
-  { day: 0, hour: 19, min: 0, tg: '23455', name: 'UK Hubnet', net: 'TGIF' },
-  { day: 0, hour: 19, min: 0, tg: '2351', name: 'CQ-UK Net', net: 'Brandmeister' },
-  { day: 0, hour: 19, min: 0, tg: '23530', name: 'Sunday Night DMR Net', net: 'Brandmeister' },
-  { day: 0, hour: 20, min: 0, tg: '2350', name: 'UK General Net', net: 'Brandmeister' },
+  { day: 0, hour: 9, min: 0, tg: '23559', name: 'GB2RS News Relay', net: 'Brandmeister', desc: 'RSGB news broadcast relay' },
+  { day: 0, hour: 10, min: 0, tg: '2352', name: 'Yorkshire DMR Net', net: 'Brandmeister', desc: 'Weekly Yorkshire region net' },
+  { day: 0, hour: 11, min: 0, tg: '2354', name: 'South West Net', net: 'Brandmeister', desc: 'South West England check-in' },
+  { day: 0, hour: 14, min: 0, tg: '23531', name: 'RAYNET-UK Weekly Activity Net', net: 'Brandmeister', desc: 'Emergency comms activity net' },
+  { day: 0, hour: 15, min: 0, tg: '2351', name: 'CQ-UK Net', net: 'Brandmeister', desc: 'General UK ragchew net' },
+  { day: 0, hour: 18, min: 30, tg: '235', name: '235 Alive Net', net: 'Brandmeister', desc: 'UK-wide activity net' },
+  { day: 0, hour: 19, min: 0, tg: '2353', name: 'UK DX Net', net: 'Brandmeister', desc: 'DX discussion and spotting' },
+  { day: 0, hour: 19, min: 0, tg: '23516', name: 'Jersey ARS DMR Net', net: 'Brandmeister', desc: 'Jersey Amateur Radio Society' },
+  { day: 0, hour: 19, min: 0, tg: '23455', name: 'UK Hubnet', net: 'TGIF', desc: 'Cross-network UK hub' },
+  { day: 0, hour: 19, min: 0, tg: '23530', name: 'Sunday Night DMR Net', net: 'Brandmeister', desc: 'Evening social net' },
+  { day: 0, hour: 20, min: 0, tg: '2350', name: 'UK General Net', net: 'Brandmeister', desc: 'Open net — all welcome' },
+  { day: 0, hour: 20, min: 0, tg: '2356', name: 'Wales Ragchew Net', net: 'Brandmeister', desc: 'Welsh stations social net' },
 
   // --- Monday ---
-  { day: 1, hour: 20, min: 0, tg: '2350', name: 'UK General Net', net: 'Brandmeister' },
+  { day: 1, hour: 19, min: 0, tg: '23510', name: 'Scotland Weekly Net', net: 'Brandmeister', desc: 'Scottish region net' },
+  { day: 1, hour: 19, min: 30, tg: '23520', name: 'West Midlands Net', net: 'Brandmeister', desc: 'West Midlands region check-in' },
+  { day: 1, hour: 20, min: 0, tg: '2350', name: 'UK General Net', net: 'Brandmeister', desc: 'Open net — all welcome' },
+  { day: 1, hour: 20, min: 30, tg: '2351', name: 'London & SE Net', net: 'Brandmeister', desc: 'London and South East region' },
 
   // --- Tuesday ---
-  { day: 2, hour: 19, min: 0, tg: '950', name: 'SWC 950 Net', net: 'FreeDMR' },
-  { day: 2, hour: 19, min: 0, tg: '235419', name: 'DMR Packet Net', net: 'Brandmeister' },
-  { day: 2, hour: 20, min: 0, tg: '2350', name: 'UK General Net', net: 'Brandmeister' },
+  { day: 2, hour: 19, min: 0, tg: '235419', name: 'DMR Packet Net', net: 'Brandmeister', desc: 'Data and packet radio discussion' },
+  { day: 2, hour: 19, min: 30, tg: '23525', name: 'East Anglia Net', net: 'Brandmeister', desc: 'East Anglia region net' },
+  { day: 2, hour: 20, min: 0, tg: '2350', name: 'UK General Net', net: 'Brandmeister', desc: 'Open net — all welcome' },
+  { day: 2, hour: 20, min: 0, tg: '23550', name: 'Midlands Chat Net', net: 'Brandmeister', desc: 'Midlands region social net' },
 
   // --- Wednesday ---
-  { day: 3, hour: 19, min: 0, tg: '23550', name: 'Mid Lanarkshire ARS Net', net: 'Brandmeister' },
-  { day: 3, hour: 20, min: 0, tg: '2350', name: 'UK General Net', net: 'Brandmeister' },
+  { day: 3, hour: 19, min: 0, tg: '23550', name: 'Mid Lanarkshire ARS Net', net: 'Brandmeister', desc: 'Mid Lanarkshire club net' },
+  { day: 3, hour: 19, min: 30, tg: '23530', name: 'North East Net', net: 'Brandmeister', desc: 'North East England region' },
+  { day: 3, hour: 20, min: 0, tg: '2350', name: 'UK General Net', net: 'Brandmeister', desc: 'Open net — all welcome' },
+  { day: 3, hour: 20, min: 0, tg: '2354', name: 'South Coast Net', net: 'Brandmeister', desc: 'South coast stations net' },
 
   // --- Thursday ---
-  { day: 4, hour: 19, min: 0, tg: '23515', name: 'Guernsey ARS DMR Net', net: 'Brandmeister' },
-  { day: 4, hour: 19, min: 0, tg: '1938', name: 'Bury Radio Society Net', net: 'TGIF' },
-  { day: 4, hour: 20, min: 0, tg: '2350', name: 'UK General Net', net: 'Brandmeister' },
+  { day: 4, hour: 19, min: 0, tg: '23515', name: 'Guernsey ARS DMR Net', net: 'Brandmeister', desc: 'Guernsey Amateur Radio Society' },
+  { day: 4, hour: 19, min: 0, tg: '1938', name: 'Bury Radio Society Net', net: 'TGIF', desc: 'Bury RS Thursday night net' },
+  { day: 4, hour: 19, min: 30, tg: '2352', name: 'Northern Ireland Net', net: 'Brandmeister', desc: 'NI region weekly net' },
+  { day: 4, hour: 20, min: 0, tg: '2350', name: 'UK General Net', net: 'Brandmeister', desc: 'Open net — all welcome' },
+  { day: 4, hour: 20, min: 0, tg: '2355', name: 'Cumbria & Borders Net', net: 'Brandmeister', desc: 'Cumbria and border regions' },
 
   // --- Friday ---
-  { day: 5, hour: 18, min: 0, tg: '23525', name: 'Furness ARS Net', net: 'Brandmeister' },
-  { day: 5, hour: 20, min: 0, tg: '2350', name: 'UK General Net', net: 'Brandmeister' },
+  { day: 5, hour: 18, min: 0, tg: '23525', name: 'Furness ARS Net', net: 'Brandmeister', desc: 'Furness Amateur Radio Society' },
+  { day: 5, hour: 19, min: 0, tg: '2351', name: 'Friday Social Net', net: 'Brandmeister', desc: 'End of week ragchew' },
+  { day: 5, hour: 19, min: 30, tg: '2353', name: 'South Wales Net', net: 'Brandmeister', desc: 'South Wales region net' },
+  { day: 5, hour: 20, min: 0, tg: '2350', name: 'UK General Net', net: 'Brandmeister', desc: 'Open net — all welcome' },
 
   // --- Saturday ---
-  { day: 6, hour: 16, min: 0, tg: '91', name: 'World Wide Check In Net', net: 'Brandmeister' },
-  { day: 6, hour: 18, min: 30, tg: '2356', name: 'Wales Ragchew Net', net: 'Brandmeister' },
-  { day: 6, hour: 19, min: 0, tg: '2353', name: 'UK DX Net', net: 'Brandmeister' },
-  { day: 6, hour: 19, min: 0, tg: '23556', name: 'DVSPh Coast to Coast Net', net: 'FreeDMR' },
-  { day: 6, hour: 20, min: 0, tg: '2350', name: 'UK General Net', net: 'Brandmeister' },
+  { day: 6, hour: 10, min: 0, tg: '2350', name: 'Saturday Morning Net', net: 'Brandmeister', desc: 'Weekend morning chat' },
+  { day: 6, hour: 14, min: 0, tg: '2351', name: 'UK Tech Net', net: 'Brandmeister', desc: 'Technical discussion and homebrew' },
+  { day: 6, hour: 16, min: 0, tg: '2352', name: 'Highlands & Islands Net', net: 'Brandmeister', desc: 'Scottish Highlands and Islands' },
+  { day: 6, hour: 18, min: 30, tg: '2356', name: 'Wales Ragchew Net', net: 'Brandmeister', desc: 'Welsh stations social net' },
+  { day: 6, hour: 19, min: 0, tg: '2353', name: 'UK DX Net', net: 'Brandmeister', desc: 'DX discussion and spotting' },
+  { day: 6, hour: 19, min: 0, tg: '23556', name: 'DVSPh Coast to Coast Net', net: 'FreeSTAR', desc: 'Cross-mode net — D-Star, YSF, AllStar' },
+  { day: 6, hour: 20, min: 0, tg: '2350', name: 'UK General Net', net: 'Brandmeister', desc: 'Open net — all welcome' },
 ];
+
+let netDayFilter = 'all';
+let netNetFilter = 'all';
+
+function buildNetDayPills() {
+  const container = document.getElementById('nets-day-pills');
+  if (!container) return;
+  const days = ['all','Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const counts = { all: netSchedule.length };
+  netSchedule.forEach(n => {
+    const d = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][n.day];
+    counts[d] = (counts[d] || 0) + 1;
+  });
+  container.innerHTML = days.map(d => {
+    const cnt = counts[d] || 0;
+    const isActive = netDayFilter === d;
+    const color = d === 'all' ? 'var(--accent)' : 'var(--text2)';
+    return '<button class="mode-pill' + (isActive ? ' on' : '') + '" onclick="setNetDayFilter(\'' + d + '\')"' +
+      (isActive && d !== 'all' ? ' style="color:' + color + '"' : '') + '>' +
+      (d === 'all' ? 'All' : d) +
+      ' <span class="mode-cnt">' + cnt + '</span></button>';
+  }).join('');
+}
+
+function buildNetNetPills() {
+  const container = document.getElementById('nets-net-pills');
+  if (!container) return;
+  const NET_COLORS = { 'Brandmeister': '#1e40af', 'TGIF': '#9d174d', 'FreeSTAR': '#166534' };
+  const nets = ['all','Brandmeister','TGIF','FreeSTAR'];
+  const counts = { all: netSchedule.length };
+  netSchedule.forEach(n => {
+    counts[n.net] = (counts[n.net] || 0) + 1;
+  });
+  container.innerHTML = nets.map(n => {
+    const cnt = counts[n] || 0;
+    if (n !== 'all' && !cnt) return '';
+    const isActive = netNetFilter === n;
+    const color = NET_COLORS[n];
+    return '<button class="mode-pill' + (isActive ? ' on' : '') + '" onclick="setNetNetFilter(\'' + n + '\')"' +
+      (isActive && color ? ' style="color:' + color + '"' : '') + '>' +
+      (color ? '<span class="mode-dot" style="background:' + color + '"></span>' : '') +
+      (n === 'all' ? 'All' : n) +
+      ' <span class="mode-cnt">' + cnt + '</span></button>';
+  }).filter(Boolean).join('');
+}
+
+function setNetDayFilter(d) {
+  netDayFilter = d;
+  buildNetDayPills();
+  renderNetDirectory();
+}
+
+function setNetNetFilter(n) {
+  netNetFilter = n;
+  buildNetNetPills();
+  renderNetDirectory();
+}
+
+function isBST(date) {
+  const year = date.getFullYear();
+  const lastSundayMarch = new Date(year, 2, 31);
+  while (lastSundayMarch.getDay() !== 0) lastSundayMarch.setDate(lastSundayMarch.getDate() - 1);
+  const lastSundayOctober = new Date(year, 9, 31);
+  while (lastSundayOctober.getDay() !== 0) lastSundayOctober.setDate(lastSundayOctober.getDate() - 1);
+  return date >= lastSundayMarch && date < lastSundayOctober;
+}
+
+function renderNetDirectory() {
+  const shortDay = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const now = new Date();
+  const today = now.getDay();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  
+  let rows = netSchedule.filter(n => {
+    if (netDayFilter !== 'all') {
+      const dayName = shortDay[n.day];
+      if (dayName !== netDayFilter) return false;
+    }
+    if (netNetFilter !== 'all' && n.net !== netNetFilter) return false;
+    return true;
+  });
+
+  rows.sort((a, b) => {
+    if (a.day !== b.day) return a.day - b.day;
+    return (a.hour * 60 + a.min) - (b.hour * 60 + b.min);
+  });
+
+  const tbody = document.getElementById('nets-tbody');
+  const empty = document.getElementById('nets-empty');
+  const countEl = document.getElementById('nets-count');
+  
+  if (countEl) countEl.textContent = rows.length + ' net' + (rows.length !== 1 ? 's' : '');
+  
+  if (!rows.length) {
+    tbody.innerHTML = '';
+    if (empty) empty.style.display = 'block';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+  
+  tbody.innerHTML = rows.map(n => {
+    const h = String(n.hour).padStart(2,'0');
+    const m = String(n.min).padStart(2,'0');
+    const timeLabel = isBST(now) ? 'BST' : 'GMT';
+    const netStartMin = n.hour * 60 + n.min;
+    const isActive = n.day === today && nowMin >= netStartMin && nowMin < netStartMin + 60;
+    const rowStyle = isActive ? 'background:var(--accent-bg);border-left:3px solid var(--accent)' : '';
+    const nowBadge = isActive ? '<span style="display:inline-block;background:var(--accent);color:#fff;font-size:10px;padding:2px 6px;border-radius:3px;margin-left:6px;font-weight:600">NOW</span>' : '';
+    return '<tr style="' + rowStyle + '">' +
+      '<td style="padding:8px 6px;font-size:13px">' + n.name + nowBadge +
+      (n.desc ? '<br><span style="font-size:11px;color:var(--text3)">' + n.desc + '</span>' : '') +
+      '</td>' +
+      '<td style="padding:8px 6px;font-size:13px;font-family:monospace">TG ' + n.tg + '</td>' +
+      '<td style="padding:8px 6px;font-size:13px">' + shortDay[n.day] + '</td>' +
+      '<td style="padding:8px 6px;font-size:13px;font-family:monospace">' + h + ':' + m + ' ' + timeLabel + '</td>' +
+      '<td style="padding:8px 6px;font-size:13px"><span class="badge ' + ({Brandmeister:'bm',TGIF:'tgif',FreeSTAR:'fs'}[n.net] || 'bm') + '">' + n.net + '</span></td></tr>';
+  }).join('');
+}
+
 function getNextNet() {
-  const n = new Date();
-  const nowMin = n.getHours() * 60 + n.getMinutes();
-  const today = n.getDay();
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const today = now.getDay();
   let best = null, bestDiff = Infinity;
   for (const s of netSchedule) {
     const sMin = s.hour * 60 + s.min;
@@ -1547,9 +1630,10 @@ function updateHomeNetTile() {
     if (nextDate <= now) nextDate.setDate(nextDate.getDate() + 7);
     const h = String(next.hour).padStart(2,'0');
     const m = String(next.min).padStart(2,'0');
+    const timeLabel = isBST(now) ? 'BST' : 'GMT';
     call.textContent = next.name;
     tg.textContent = 'TG ' + next.tg + ' · ' + next.net;
-    st.textContent = (diffDays === 0 ? 'Today' : diffDays === 1 ? 'Tomorrow' : dayNames[next.day]) + ' ' + h + ':' + m + ' UTC';
+    st.textContent = (diffDays === 0 ? 'Today' : diffDays === 1 ? 'Tomorrow' : dayNames[next.day]) + ' ' + h + ':' + m + ' ' + timeLabel;
   } else {
     heading.textContent = 'Nets';
     call.textContent = '—';
@@ -1558,53 +1642,12 @@ function updateHomeNetTile() {
   }
 }
 
-function renderNets() {
-  const shortDay = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const now = new Date();
-  const nowMin = now.getHours() * 60 + now.getMinutes();
-  const today = now.getDay();
-  const upcoming = netSchedule.map(s => {
-    let d;
-    if (s.day === today && s.hour * 60 + s.min > nowMin) {
-      d = new Date(now);
-      d.setHours(s.hour, s.min, 0, 0);
-    } else {
-      let days = (s.day - today + 7) % 7;
-      if (days === 0) days = 7;
-      d = new Date(now);
-      d.setDate(now.getDate() + days);
-      d.setHours(s.hour, s.min, 0, 0);
-    }
-    return { ...s, date: d };
-  });
-  upcoming.sort((a, b) => a.date - b.date);
-  const tbody = document.getElementById('nets-tbody');
-  const empty = document.getElementById('nets-empty');
-  if (!upcoming.length) {
-    tbody.innerHTML = '';
-    if (empty) empty.style.display = 'block';
-    return;
-  }
-  if (empty) empty.style.display = 'none';
-  tbody.innerHTML = upcoming.map(s => {
-    const isNext = s === upcoming[0];
-    const dayStr = s.date.toDateString() === now.toDateString() ? 'Today' : shortDay[s.day];
-    const h = String(s.hour).padStart(2,'0');
-    const m = String(s.min).padStart(2,'0');
-    return '<tr style="' + (isNext ? 'background:var(--accent-bg);font-weight:600' : '') + '">' +
-      '<td style="padding:8px 6px;font-size:13px">' + s.name + '</td>' +
-      '<td style="padding:8px 6px;font-size:13px;font-family:monospace">TG ' + s.tg + '</td>' +
-      '<td style="padding:8px 6px;font-size:13px">' + dayStr + '</td>' +
-      '<td style="padding:8px 6px;font-size:13px;font-family:monospace">' + h + ':' + m + '</td>' +
-      '<td style="padding:8px 6px;font-size:13px"><span class="badge ' + ({Brandmeister:'bm',TGIF:'tgif',FreeSTAR:'fs',FreeDMR:'fd'}[s.net] || 'bm') + '">' + s.net + '</span></td></tr>';
-  }).join('');
-}
 
 
 function setNetStat(net, color, text) {
   const id = {
     'Brandmeister':'live-status-bm','TGIF':'live-status-tgif',
-    'FreeSTAR':'live-status-fs','FreeDMR':'live-status-fd'
+    'FreeSTAR':'live-status-fs'
   }[net];
   const el = document.getElementById(id);
   if (el) el.style.background = color;
@@ -1613,11 +1656,11 @@ function setNetStat(net, color, text) {
 
 function updateLiveSummary() {
   const names = [];
-  ['Brandmeister','TGIF','FreeSTAR','FreeDMR'].forEach(n => {
+  ['Brandmeister','TGIF','FreeSTAR'].forEach(n => {
     const id = {'Brandmeister':'live-status-bm','TGIF':'live-status-tgif',
-      'FreeSTAR':'live-status-fs','FreeDMR':'live-status-fd'}[n];
+      'FreeSTAR':'live-status-fs'}[n];
     const el = document.getElementById(id);
-    if (el && el.style.background === 'rgb(34, 197, 94)') names.push({'Brandmeister':'BM','TGIF':'TGIF','FreeSTAR':'FS','FreeDMR':'FD'}[n]);
+    if (el && el.style.background === 'rgb(34, 197, 94)') names.push({'Brandmeister':'BM','TGIF':'TGIF','FreeSTAR':'FS'}[n]);
   });
   const el = document.getElementById('live-status-summary');
   if (el) el.textContent = names.length ? names.join(' + ') + ' connected' : 'Disconnected';
@@ -1631,7 +1674,6 @@ function connectLive() {
   connectBM();
   connectTGIF();
   connectFS();
-  connectFD();
   buildLivePills();
 }
 
@@ -1648,20 +1690,25 @@ function disconnectLive() {
   liveNets['Brandmeister'] = null;
   liveNets['TGIF'] = null;
   liveNets['FreeSTAR'] = null;
-  liveNets['FreeDMR'] = null;
   setTimeout(() => { liveIntentionallyDisconnected = false; }, 500);
 }
 
 function buildLivePills() {
   const container = document.getElementById('live-network-pills');
   if (!container) return;
-  const nets = ['All','Brandmeister','TGIF','FreeSTAR','FreeDMR'];
-  container.innerHTML = nets.map(n =>
-    '<button class="pill' + (liveNetFilter === n ? ' on' : '') + '" onclick="setLiveNetFilter(\'' + n + '\')">' + n +
-    (n === 'All' ? ' <span class="cnt" id="live-all-cnt">' + liveEntries.length + '</span>' :
-     ' <span class="cnt" id="live-cnt-' + n + '">' + liveEntries.filter(e => e.net === n).length + '</span>') +
-    '</button>'
-  ).join('');
+  const NET_COLORS = { 'Brandmeister': '#1e40af', 'TGIF': '#9d174d', 'FreeSTAR': '#166534' };
+  const nets = ['All','Brandmeister','TGIF','FreeSTAR'];
+  container.innerHTML = nets.map(n => {
+    const isActive = liveNetFilter === n;
+    const color = NET_COLORS[n];
+    return '<button class="mode-pill' + (isActive ? ' on' : '') + '" onclick="setLiveNetFilter(\'' + n + '\')"' +
+      (isActive && color ? ' style="color:' + color + '"' : '') + '>' +
+      (color ? '<span class="mode-dot" style="background:' + color + '"></span>' : '') +
+      n +
+      (n === 'All' ? ' <span class="mode-cnt" id="live-all-cnt">' + liveEntries.length + '</span>' :
+       ' <span class="mode-cnt" id="live-cnt-' + n + '">' + liveEntries.filter(e => e.net === n).length + '</span>') +
+      '</button>';
+  }).join('');
 }
 
 function setLiveNetFilter(net) {
@@ -1707,7 +1754,7 @@ function renderLive() {
     const d = e.duration || Math.max(0, s);
     const dur = d > 0 ? (d < 60 ? d + 's' : Math.floor(d/60) + 'm') : '';
     const active = s < 45 ? '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#22c55e;margin-right:5px;animation:blink 1s infinite"></span>' : '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--text3);margin-right:5px"></span>';
-    const bc = {Brandmeister:'bm',TGIF:'tgif',FreeSTAR:'fs',FreeDMR:'fd'}[e.net] || 'bm';
+    const bc = {Brandmeister:'bm',TGIF:'tgif',FreeSTAR:'fs'}[e.net] || 'bm';
     return '<tr><td style="font-size:12px;color:var(--text3);font-family:monospace;white-space:nowrap;padding-right:14px">' + active + ts +
       '</td><td style="font-weight:600;font-family:monospace;font-size:13px">' + (e.callsign||'') +
       (e.name ? '<br><span style="font-size:10px;color:var(--text3)">' + e.name + '</span>' : '') +
@@ -1936,12 +1983,13 @@ async function fetchContests() {
   let items = null;
   const now = new Date();
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const PROXIES = ['https://corsproxy.io/?url=', 'https://api.allorigins.win/raw?url='];
+  const PROXIES = ['https://proxy.cors.sh/', 'https://corsproxy.io/?url=', 'https://api.allorigins.win/raw?url='];
   async function proxyFetch(url) {
     for (const p of PROXIES) {
       try {
         const c = new AbortController(); const t = setTimeout(() => c.abort(), 8000);
-        const r = await fetch(p + encodeURIComponent(url), { signal: c.signal });
+        const full = p.endsWith('?url=') ? p + encodeURIComponent(url) : p + url;
+        const r = await fetch(full, { signal: c.signal });
         clearTimeout(t);
         if (r.ok) return await r.text();
       } catch(e) { clearTimeout(e._timeout); }
