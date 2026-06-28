@@ -422,6 +422,11 @@
     <label><input type="radio" name="live-filter" value="all"><span class="mode-label">All</span></label>
   </div>
 
+  <div id="live-now" style="display:none;background:var(--surface);border:1px solid var(--accent);border-radius:12px;padding:12px 16px;margin-bottom:12px;text-align:center">
+    <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Now Active</div>
+    <div style="font-size:22px;font-weight:700;color:var(--text);font-family:monospace" id="live-now-call">—</div>
+    <div style="font-size:13px;color:var(--text2);margin-top:2px" id="live-now-tg">—</div>
+  </div>
   <div id="live-results">
     <div class="empty" id="live-empty">Waiting for activity…</div>
     <div class="rpt-table-wrap" id="live-table-wrap">
@@ -1329,10 +1334,21 @@ function renderLive() {
     tbody.innerHTML = '';
     if (wrap) wrap.style.display = 'none';
     if (empty) empty.style.display = 'block';
+    document.getElementById('live-now').style.display = 'none';
     return;
   }
   if (wrap) wrap.style.display = 'block';
   if (empty) empty.style.display = 'none';
+  // Now Active banner
+  const nowBanner = document.getElementById('live-now');
+  const recent = rows.find(e => (Date.now() - e.time) < 8000);
+  if (recent) {
+    nowBanner.style.display = 'block';
+    document.getElementById('live-now-call').textContent = recent.callsign;
+    document.getElementById('live-now-tg').textContent = 'TG ' + recent.tg + (recent.tgName ? ' · ' + recent.tgName : '') + ' · ' + recent.net;
+  } else {
+    nowBanner.style.display = 'none';
+  }
   tbody.innerHTML = rows.map(e => {
     const s = Math.floor((Date.now() - e.time) / 1000);
     const ts = s < 5 ? 'now' : s < 60 ? s + 's' : Math.floor(s/60) + 'm';
