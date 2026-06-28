@@ -282,6 +282,13 @@
       <h3>Live Activity</h3>
       <p>Watch live DMR transmissions across Brandmeister, TGIF, FreeSTAR and FreeDMR networks in real time.</p>
     </div>
+    <div class="feature-card" id="home-net-tile" onclick="switchView('live')">
+      <div class="feature-card-icon" style="background:#fff3cd;color:#856404">🌐</div>
+      <h3 id="net-tile-heading">Live Net Now</h3>
+      <p id="net-tile-call" style="font-weight:600;font-family:monospace;font-size:15px">—</p>
+      <p id="net-tile-tg" style="font-size:12px;color:var(--text3)"></p>
+      <p id="net-tile-status" style="font-size:11px;color:var(--text3)">Waiting for activity…</p>
+    </div>
   </div>
 
   <div class="home-stat" id="home-stat">Loading talk groups…</div>
@@ -977,6 +984,8 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('input[name="mode-filter"]').forEach(el => {
     el.addEventListener('change', () => { if (rptUserPos) renderRepeaters(rptUserPos.lat, rptUserPos.lng); });
   });
+  // Refresh home net tile periodically
+  setInterval(updateHomeNetTile, 2000);
 });
 
 // Mode pill badges
@@ -1047,18 +1056,42 @@ function connectBM() {
       const payload = (raw && raw.payload) ? raw.payload : raw;
       const msg = typeof payload === 'string' ? JSON.parse(payload) : payload;
       if (!msg || !msg.SourceCall) return;
+      if (msg.SourceID) dmrCache[String(msg.SourceID)] = msg.SourceCall;
       const now = Date.now() / 1000;
       if (msg.Start && (now - msg.Start) > 120) return;
       const sid = msg.SessionID || '';
-      if (sid && liveSeen['bm_'+sid] && (now - liveSeen['bm_'+sid]) < 30) return;
-      if (sid) liveSeen['bm_'+sid] = now;
+      const key = 'bm_'+sid;
+      // Session ended — mark entry as inactive immediately
+      if (msg.Event === 'Session-Stop' && sid) {
+        const existing = liveEntries.find(e => e._sid === key);
+        if (existing) {
+          existing.time = Date.now() - 60000;
+          existing.duration = msg.duration || (msg.Stop ? Math.max(0, msg.Stop - msg.Start) : 0);
+          renderLive();
+        }
+        if (sid) liveSeen[key] = now;
+        return;
+      }
+      if (sid && liveSeen[key] && (now - liveSeen[key]) < 35) {
+        // Session still active — bump its time and jump to top
+        const existing = liveEntries.find(e => e._sid === key);
+        if (existing) {
+          existing.time = Date.now();
+          const i = liveEntries.indexOf(existing);
+          if (i > 0) { liveEntries.splice(i, 1); liveEntries.unshift(existing); }
+          renderLive();
+        }
+        return;
+      }
+      if (sid) liveSeen[key] = now;
       const dstId = String(msg.DestinationID || '');
       addEntry({
         time: (msg.Start || now) * 1000, callsign: msg.SourceCall,
         name: msg.SourceName || '', tg: dstId,
         tgName: msg.DestinationName || msg.DestinationCall || '',
-        duration: msg.duration || 0, net: 'Brandmeister',
-        isUK: UK_TG_PREFIXES.some(p => dstId === p || dstId.startsWith(p))
+        duration: msg.duration || (msg.Stop ? Math.max(0, msg.Stop - msg.Start) : Math.min(120, Math.round(now - (msg.Start || now)))) || 0, net: 'Brandmeister',
+        isUK: UK_TG_PREFIXES.some(p => dstId === p || dstId.startsWith(p)),
+        _sid: key
       });
     } catch(e) { /* ignore */ }
   });
@@ -1250,6 +1283,80 @@ function addEntry(e) {
   renderLive();
 }
 
+// Regular net schedule (day: 0=Sun, 1=Mon…6=Sat)
+const netSchedule = [
+  { day: 1, hour: 20, min: 0, tg: '2350', name: 'UK General Net', net: 'Brandmeister' },
+  { day: 2, hour: 20, min: 0, tg: '2350', name: 'UK General Net', net: 'Brandmeister' },
+  { day: 3, hour: 20, min: 0, tg: '2350', name: 'UK General Net', net: 'Brandmeister' },
+  { day: 4, hour: 20, min: 0, tg: '2350', name: 'UK General Net', net: 'Brandmeister' },
+  { day: 5, hour: 20, min: 0, tg: '2350', name: 'UK General Net', net: 'Brandmeister' },
+  { day: 6, hour: 20, min: 0, tg: '2350', name: 'UK General Net', net: 'Brandmeister' },
+  { day: 0, hour: 20, min: 0, tg: '2350', name: 'UK General Net', net: 'Brandmeister' },
+  { day: 6, hour: 19, min: 0, tg: '2353', name: 'UK DX Net', net: 'Brandmeister' },
+  { day: 0, hour: 19, min: 0, tg: '2353', name: 'UK DX Net', net: 'Brandmeister' },
+];
+function getNextNet() {
+  const n = new Date();
+  const nowMin = n.getHours() * 60 + n.getMinutes();
+  const today = n.getDay();
+  let best = null, bestDiff = Infinity;
+  for (const s of netSchedule) {
+    const sMin = s.hour * 60 + s.min;
+    let diff;
+    if (s.day === today && sMin > nowMin) {
+      diff = sMin - nowMin;
+    } else {
+      let days = (s.day - today + 7) % 7;
+      if (days === 0) days = 7;
+      diff = days * 1440 + sMin - nowMin;
+    }
+    if (diff > 0 && diff < bestDiff) { bestDiff = diff; best = s; }
+  }
+  return best;
+}
+
+function updateHomeNetTile() {
+  const now = Date.now();
+  const active = liveEntries.find(e => e._sid && (now - e.time) < 35000 && e.net === 'Brandmeister');
+  const call = document.getElementById('net-tile-call');
+  const tg = document.getElementById('net-tile-tg');
+  const st = document.getElementById('net-tile-status');
+  const card = document.getElementById('home-net-tile');
+  const heading = document.getElementById('net-tile-heading');
+  if (active) {
+    heading.textContent = 'Live Net Now';
+    const s = Math.round((now - active.time) / 1000);
+    const dur = active.duration ? (active.duration < 60 ? active.duration+'s' : Math.floor(active.duration/60)+'m') : (s < 60 ? s+'s' : Math.floor(s/60)+'m');
+    call.textContent = active.callsign;
+    tg.textContent = 'TG ' + active.tg + (active.tgName ? ' · ' + active.tgName : '');
+    st.textContent = dur + ' on Brandmeister';
+    card.style.display = 'block';
+  } else {
+    const next = getNextNet();
+    if (next) {
+      heading.textContent = 'Next Net';
+      const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      const now = new Date();
+      const nextDate = new Date();
+      const diffDays = (next.day - now.getDay() + 7) % 7;
+      nextDate.setDate(now.getDate() + diffDays);
+      nextDate.setHours(next.hour, next.min, 0, 0);
+      if (nextDate <= now) nextDate.setDate(nextDate.getDate() + 7);
+      const h = String(next.hour).padStart(2,'0');
+      const m = String(next.min).padStart(2,'0');
+      call.textContent = next.name;
+      tg.textContent = 'TG ' + next.tg + ' · ' + next.net;
+      st.textContent = (diffDays === 0 ? 'Today' : diffDays === 1 ? 'Tomorrow' : dayNames[next.day]) + ' ' + h + ':' + m + ' UTC';
+    } else {
+      heading.textContent = 'Nets';
+      call.textContent = '—';
+      tg.textContent = '';
+      st.textContent = 'No nets scheduled';
+    }
+    card.style.display = 'block';
+  }
+}
+
 function setNetStat(net, color, text) {
   const id = {
     'Brandmeister':'live-status-bm','TGIF':'live-status-tgif',
@@ -1335,6 +1442,7 @@ function renderLive() {
     if (wrap) wrap.style.display = 'none';
     if (empty) empty.style.display = 'block';
     document.getElementById('live-now').style.display = 'none';
+    updateHomeNetTile();
     return;
   }
   if (wrap) wrap.style.display = 'block';
@@ -1352,20 +1460,22 @@ function renderLive() {
   tbody.innerHTML = rows.map(e => {
     const s = Math.floor((Date.now() - e.time) / 1000);
     const ts = s < 5 ? 'now' : s < 60 ? s + 's' : Math.floor(s/60) + 'm';
-    const dur = e.duration > 0 ? (e.duration < 60 ? e.duration + 's' : Math.floor(e.duration/60) + 'm') : '—';
-    const active = s < 8 ? '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#22c55e;margin-right:5px;animation:blink 1s infinite"></span>' : '';
+    const d = e.duration || Math.max(0, s);
+    const dur = d > 0 ? (d < 60 ? d + 's' : Math.floor(d/60) + 'm') : '';
+    const active = s < 45 ? '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#22c55e;margin-right:5px;animation:blink 1s infinite"></span>' : '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--text3);margin-right:5px"></span>';
     const bc = {Brandmeister:'bm',TGIF:'tgif',FreeSTAR:'fs',FreeDMR:'fd'}[e.net] || 'bm';
-    return '<tr><td style="font-size:12px;color:var(--text3);font-family:monospace;white-space:nowrap">' + active + ts +
-      '</td><td style="font-weight:600;font-family:monospace;font-size:13px">' + e.callsign +
+    return '<tr><td style="font-size:12px;color:var(--text3);font-family:monospace;white-space:nowrap;padding-right:14px">' + active + ts +
+      '</td><td style="font-weight:600;font-family:monospace;font-size:13px">' + (e.callsign||'') +
       (e.name ? '<br><span style="font-size:10px;color:var(--text3)">' + e.name + '</span>' : '') +
-      '</td><td style="font-size:13px">TG ' + e.tg +
+      '</td><td style="font-size:13px">TG ' + (e.tg||'') +
       (e.tgName ? '<br><span style="font-size:10px;color:var(--text3)">' + e.tgName + '</span>' : '') +
-      '</td><td style="font-size:12px;color:var(--text2)">' + dur +
+      '</td><td style="font-size:12px;color:var(--text2)">' + (dur || '-') +
       '</td><td>' + (e.net === 'Brandmeister' && e.tg
-        ? '<button class="listen-btn" data-tg="' + e.tg + '" onclick="toggleListening(this,\'' + e.tg + '\')" title="Listen to TG ' + e.tg + '">▶</button>'
-        : '<span class="listen-na" title="Not available">—</span>') +
-      '</td><td><span class="badge ' + bc + '">' + e.net + '</span></td></tr>';
+        ? '<button class="listen-btn" data-tg="' + e.tg + '" onclick="toggleListening(this,\'' + e.tg + '\')" title="Listen to TG ' + e.tg + '">\u25b6</button>'
+        : '<span class="listen-na" title="Not available">-</span>') +
+      '</td><td><span class="badge ' + bc + '">' + (e.net||'') + '</span></td></tr>';
   }).join('');
+  updateHomeNetTile();
 }
 
 // Live filter changes
@@ -1414,7 +1524,14 @@ for (let i = 0; i < 256; i++) {
   ulawTable[i] = t ? -o : o;
 }
 let spotterWS = null, spotterTG = null, audioCtx = null, gainNode = null;
-let isListening = false, audioQueue = [], isPlaying = false, silenceTimer = null, nextPlayTime = 0;
+let isListening = false, audioQueue = [], isPlaying = false, silenceTimer = null, nextPlayTime = 0, spotterCall = '', spotterDisplay = '';
+
+const dmrCache = {};
+function resolveDMRId(id, cb) {
+  if (!id) { cb(''); return; }
+  if (dmrCache[id]) { cb(dmrCache[id]); return; }
+  cb(id);
+}
 
 function toggleListening(btn, tg) {
   if (isListening && spotterTG === tg) { stopListening(); return; }
@@ -1424,6 +1541,7 @@ function toggleListening(btn, tg) {
 function startListening(tg) {
   stopListening();
   spotterTG = tg;
+  spotterCall = '';
   const bar = document.getElementById('spotter-bar');
   const label = document.getElementById('spotter-label');
   const status = document.getElementById('spotter-status');
@@ -1453,16 +1571,26 @@ function startListening(tg) {
     try {
       const msg = window.MessagePack.decode(new Uint8Array(event.data));
       if (msg[0] === ST_AUDIO) {
-        status.textContent = 'Receiving';
+        status.textContent = spotterDisplay || 'Receiving';
         const raw = msg[1];
         const samples = new Int16Array(raw.length);
         for (let i = 0; i < raw.length; i++) samples[i] = ulawTable[raw[i]];
         audioQueue.push(samples);
         processAudioQueue();
         clearTimeout(silenceTimer);
-        silenceTimer = setTimeout(() => { status.textContent = 'Waiting…'; }, 5000);
+        silenceTimer = setTimeout(() => { status.textContent = spotterDisplay || 'Waiting…'; }, 5000);
       } else if (msg[0] === ST_CALL_START) {
-        status.textContent = msg[1] + ' → TG ' + msg[2];
+        const srcId = String(msg[2]);
+        status.textContent = 'Resolving…';
+        resolveDMRId(srcId, cs => {
+          spotterCall = cs;
+          spotterDisplay = (cs !== srcId ? cs + ' (' + srcId + ')' : srcId) + ' → TG ' + msg[3];
+          status.textContent = spotterDisplay;
+        });
+      } else if (msg[0] === ST_CALL_END) {
+  spotterCall = '';
+  spotterDisplay = '';
+        spotterDisplay = '';
       }
     } catch(err) {}
   };
@@ -1508,6 +1636,7 @@ function stopListening() {
   }
   if (audioCtx) { audioCtx.close(); audioCtx = null; }
   spotterTG = null;
+  spotterCall = '';
 }
 
 loadBM();
