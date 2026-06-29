@@ -86,8 +86,16 @@
   .home-pills button { font-size: 12px; padding: 5px 14px; border-radius: 99px; border: 1px solid var(--border); background: var(--surface); color: var(--text2); cursor: pointer; }
   .home-pills button:hover { border-color: var(--accent); color: var(--accent); }
   .home-stat { font-size: 12px; color: var(--text3); text-align: center; margin-top: 1rem; }
-  @media (min-width: 600px) { .feature-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (min-width: 600px) { .feature-grid { grid-template-columns: repeat(4, 1fr); } }
   @media (max-width: 599px) { .feature-grid { grid-template-columns: 1fr; } }
+
+  /* Links grid */
+  .links-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
+  .link-card { display: flex; align-items: flex-start; gap: 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; text-decoration: none; transition: all 0.2s; }
+  .link-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+  .link-icon { font-size: 2rem; flex-shrink: 0; }
+  .link-content h3 { font-size: 1rem; margin: 0 0 0.25rem 0; color: var(--text); font-weight: 600; }
+  .link-content p { font-size: 0.85rem; color: var(--text2); margin: 0; line-height: 1.4; }
 
   /* Stats row */
   .stats { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; margin-bottom: 1rem; }
@@ -161,6 +169,14 @@
   .fav-btn { background: none; border: none; font-size: 17px; cursor: pointer; color: var(--text3); line-height: 1; padding: 2px; }
   .fav-btn.on { color: var(--fav); }
   .empty { padding: 3rem; text-align: center; color: var(--text3); font-size: 14px; }
+
+  /* Links grid */
+  .links-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; margin-top: 1rem; }
+  .link-card { display: flex; align-items: flex-start; gap: 1rem; padding: 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); text-decoration: none; color: var(--text); transition: all 0.2s; }
+  .link-card:hover { border-color: var(--accent); box-shadow: 0 2px 8px rgba(0,0,0,0.08); transform: translateY(-2px); }
+  .link-icon { font-size: 2rem; flex-shrink: 0; }
+  .link-content h3 { font-size: 15px; font-weight: 600; margin: 0 0 0.25rem 0; color: var(--text); }
+  .link-content p { font-size: 13px; color: var(--text3); margin: 0; line-height: 1.4; }
 
   /* View switching */
   .view { display: block; }
@@ -330,6 +346,8 @@
       <button onclick="switchView('rally')" id="nav-rally-top">Rallies</button>
       <button onclick="switchView('spot')" id="nav-spot-top">Spots</button>
       <button onclick="switchView('activity')" id="nav-activity-top">Activity</button>
+      <button onclick="switchView('simplex')" id="nav-simplex-top">Simplex</button>
+      <button onclick="switchView('links')" id="nav-links-top">Links</button>
       <button class="install-btn" id="install-btn">Install</button>
       <span class="live-chip" id="live-chip">LIVE</span>
     </div>
@@ -390,6 +408,16 @@
       <div class="feature-card-icon" style="background:#fce7f3;color:#9d174d">📻</div>
       <h3>QSOLink</h3>
       <p>DMR and FM network linking application. Bridge between SVXLINK and DMR networks with AMBE support.</p>
+    </div>
+    <div class="feature-card" onclick="switchView('links')">
+      <div class="feature-card-icon" style="background:#fef3c7;color:#92400e">🔗</div>
+      <h3>Useful Links</h3>
+      <p>Collection of useful amateur radio websites and resources I use regularly.</p>
+    </div>
+    <div class="feature-card" onclick="switchView('simplex')">
+      <div class="feature-card-icon" style="background:#dbeafe;color:#1e40af">📡</div>
+      <h3>Simplex Frequencies</h3>
+      <p>UK 2m, 70cm, and PMR 446 simplex channel frequencies. Quick reference for direct communications.</p>
     </div>
   </div>
 
@@ -479,6 +507,8 @@
   </div>
 
   <div class="mode-pills" id="rpt-mode-pills"></div>
+
+  <div id="rpt-map" style="height:300px;margin-bottom:1rem;border-radius:10px;overflow:hidden;border:1px solid var(--border);display:none"></div>
 
   <div id="rpt-results">
     <div class="empty" id="rpt-empty">Enter a location above to find nearby repeaters.</div>
@@ -662,6 +692,45 @@
   <div id="activity-list"></div>
 </div>
 
+<!-- Simplex Frequencies view -->
+<div id="simplex-view" class="view hidden">
+  <h2 style="margin:0 0 .75rem;font-size:18px">UK Simplex Frequencies</h2>
+  <div class="mode-pills-row" id="simplex-band-pills"></div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:120px">Frequency</th>
+          <th>Band</th>
+          <th>Usage</th>
+        </tr>
+      </thead>
+      <tbody id="simplex-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Links view -->
+<div id="links-view" class="view hidden">
+  <h2 style="margin:0 0 .75rem;font-size:18px">Useful Links</h2>
+  <div class="links-grid">
+    <a href="https://qsolink.websdrbordeaux.fr/" target="_blank" class="link-card">
+      <div class="link-icon">📻</div>
+      <div class="link-content">
+        <h3>QSOLink</h3>
+        <p>DMR and FM network linking application. Bridge between SVXLINK and DMR networks with AMBE support.</p>
+      </div>
+    </a>
+    <a href="https://svxlink.m0xyn.radio/" target="_blank" class="link-card">
+      <div class="link-icon">🔗</div>
+      <div class="link-content">
+        <h3>SVXLink Network</h3>
+        <p>UK SVXLink network node. Connect to linked repeaters and reflectors across the UK.</p>
+      </div>
+    </a>
+  </div>
+</div>
+
 </main>
 
 <!-- Spotter audio player bar -->
@@ -705,6 +774,14 @@
     <button onclick="switchView('activity')" id="nav-activity-bot">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
       Activity
+    </button>
+    <button onclick="switchView('simplex')" id="nav-simplex-bot">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+      Simplex
+    </button>
+    <button onclick="switchView('links')" id="nav-links-bot">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+      Links
     </button>
     <button onclick="switchView('rally')" id="nav-rally-bot">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><path d="M21 13V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8"/><path d="M3 10h18"/><path d="M15 18l3 3 6-6"/></svg>
@@ -982,15 +1059,17 @@ function switchView(v) {
   document.getElementById('rally-view').classList.toggle('hidden', v !== 'rally');
   document.getElementById('spot-view').classList.toggle('hidden', v !== 'spot');
   document.getElementById('activity-view').classList.toggle('hidden', v !== 'activity');
+  document.getElementById('simplex-view').classList.toggle('hidden', v !== 'simplex');
+  document.getElementById('links-view').classList.toggle('hidden', v !== 'links');
   // Top nav
-  ['home','tg','rpt-top','live-top','nets-top','contest-top','rally-top','spot-top','activity-top'].forEach(id => {
+  ['home','tg','rpt-top','live-top','nets-top','contest-top','rally-top','spot-top','activity-top','simplex-top','links-top'].forEach(id => {
     const el = document.getElementById('nav-' + id);
-    if (el) el.classList.toggle('on', v === id || (v === 'tg' && id === 'tg') || (v === 'rpt' && id === 'rpt-top') || (v === 'live' && id === 'live-top') || (v === 'nets' && id === 'nets-top') || (v === 'contest' && id === 'contest-top') || (v === 'rally' && id === 'rally-top') || (v === 'spot' && id === 'spot-top') || (v === 'activity' && id === 'activity-top'));
+    if (el) el.classList.toggle('on', v === id || (v === 'tg' && id === 'tg') || (v === 'rpt' && id === 'rpt-top') || (v === 'live' && id === 'live-top') || (v === 'nets' && id === 'nets-top') || (v === 'contest' && id === 'contest-top') || (v === 'rally' && id === 'rally-top') || (v === 'spot' && id === 'spot-top') || (v === 'activity' && id === 'activity-top') || (v === 'simplex' && id === 'simplex-top') || (v === 'links' && id === 'links-top'));
   });
   // Bottom nav
-  ['home-bot','tg-view','rpt-bot','live-bot','nets-bot','contest-bot','rally-bot','spot-bot','activity-bot','fav-bot'].forEach(id => {
+  ['home-bot','tg-view','rpt-bot','live-bot','nets-bot','contest-bot','rally-bot','spot-bot','activity-bot','simplex-bot','links-bot','fav-bot'].forEach(id => {
     const el = document.getElementById('nav-' + id);
-    if (el) el.classList.toggle('on', v === id || (v === 'tg' && id === 'tg-view') || (v === 'rpt' && id === 'rpt-bot') || (v === 'live' && id === 'live-bot') || (v === 'nets' && id === 'nets-bot') || (v === 'contest' && id === 'contest-bot') || (v === 'rally' && id === 'rally-bot') || (v === 'spot' && id === 'spot-bot') || (v === 'activity' && id === 'activity-bot'));
+    if (el) el.classList.toggle('on', v === id || (v === 'tg' && id === 'tg-view') || (v === 'rpt' && id === 'rpt-bot') || (v === 'live' && id === 'live-bot') || (v === 'nets' && id === 'nets-bot') || (v === 'contest' && id === 'contest-bot') || (v === 'rally' && id === 'rally-bot') || (v === 'spot' && id === 'spot-bot') || (v === 'activity' && id === 'activity-bot') || (v === 'simplex' && id === 'simplex-bot') || (v === 'links' && id === 'links-bot'));
   });
   if (v === 'rpt' && rptData.length === 0) {
     loadRepeaters();
@@ -1002,6 +1081,7 @@ function switchView(v) {
   if (v === 'rally' && allRallies.length === 0) fetchRallies();
   if (v === 'spot' && spotData.length === 0) fetchSpots();
   if (v === 'activity') renderActivityMonitor();
+  if (v === 'simplex') { buildSimplexBandPills(); renderSimplexFreqs(); }
 }
 
 function mToLatLng(loc) {
@@ -1224,6 +1304,72 @@ function renderRepeaters(centerLat, centerLng) {
       '<td class="rpt-col-info">' + modeHtml + (cc ? ' <span style="font-size:10px;color:var(--text3)">' + cc + '</span>' : '') + ' <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:' + statusColor + ';vertical-align:middle" title="' + r.status + '"></span></td>' +
       '</tr>';
   }).join('');
+  
+  updateRptMap(filtered, centerLat, centerLng);
+}
+
+function updateRptMap(repeaters, centerLat, centerLng) {
+  const mapEl = document.getElementById('rpt-map');
+  if (!mapEl || typeof L === 'undefined') return;
+  
+  if (!repeaters.length) {
+    mapEl.style.display = 'none';
+    return;
+  }
+  
+  mapEl.style.display = 'block';
+  
+  if (!rptMap) {
+    rptMap = L.map(mapEl).setView([centerLat, centerLng], 10);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(rptMap);
+  }
+  
+  if (rptMarkers) {
+    rptMap.removeLayer(rptMarkers);
+  }
+  
+  rptMarkers = L.layerGroup();
+  
+  // Add user location marker
+  L.marker([centerLat, centerLng], {
+    icon: L.divIcon({
+      className: 'user-location-marker',
+      html: '<div style="width:12px;height:12px;background:#3b82f6;border:2px solid #fff;border-radius:50%;box-shadow:0 0 4px rgba(0,0,0,0.3)"></div>',
+      iconSize: [12, 12],
+      iconAnchor: [6, 6]
+    })
+  }).addTo(rptMarkers).bindPopup('Your location');
+  
+  // Add repeater markers
+  repeaters.forEach(rpt => {
+    const statusColor = rpt.status === 'OPERATIONAL' ? '#22c55e' : rpt.status === 'REDUCED OUTPUT' ? '#f59e0b' : '#6c757d';
+    const modes = modeDisplay(rpt.modeCodes);
+    const modeLabels = modes.map(m => m.label).join(', ');
+    
+    L.marker([rpt.lat, rpt.lng], {
+      icon: L.divIcon({
+        className: 'repeater-marker',
+        html: `<div style="width:10px;height:10px;background:${statusColor};border:2px solid #fff;border-radius:50%;box-shadow:0 0 4px rgba(0,0,0,0.3)"></div>`,
+        iconSize: [10, 10],
+        iconAnchor: [5, 5]
+      })
+    }).addTo(rptMarkers).bindPopup(
+      `<b>${rpt.cs}</b><br>` +
+      `TX: ${rpt.freqTx} MHz<br>` +
+      (rpt.freqRx ? `RX: ${rpt.freqRx} MHz<br>` : '') +
+      `${rpt.town}<br>` +
+      `Modes: ${modeLabels}<br>` +
+      `Status: ${rpt.status}${rpt.dmrcc ? '<br>CC: ' + rpt.dmrcc : ''}`
+    );
+  });
+  
+  rptMarkers.addTo(rptMap);
+  
+  // Fit map to show all markers
+  const bounds = L.latLngBounds([[centerLat, centerLng], ...repeaters.map(r => [r.lat, r.lng])]);
+  rptMap.fitBounds(bounds, { padding: [20, 20] });
 }
 
 function onRadiusChange() {
@@ -1958,8 +2104,167 @@ window.addEventListener('offline', () => {
 });
 window.addEventListener('online', () => {
   document.getElementById('offlinebar').style.display = 'none';
-  loadBM();
 });
+
+/* ---- Simplex Frequencies ---- */
+const SIMPLEX_FREQS = [
+  // 2m Simplex (145 MHz)
+  { freq: '145.200', band: '2m', usage: 'FM Simplex' },
+  { freq: '145.225', band: '2m', usage: 'FM Simplex' },
+  { freq: '145.250', band: '2m', usage: 'FM Simplex' },
+  { freq: '145.275', band: '2m', usage: 'FM Simplex' },
+  { freq: '145.300', band: '2m', usage: 'FM Simplex' },
+  { freq: '145.325', band: '2m', usage: 'FM Simplex' },
+  { freq: '145.350', band: '2m', usage: 'FM Simplex' },
+  { freq: '145.375', band: '2m', usage: 'FM Simplex' },
+  { freq: '145.400', band: '2m', usage: 'FM Simplex' },
+  { freq: '145.425', band: '2m', usage: 'FM Simplex' },
+  { freq: '145.450', band: '2m', usage: 'FM Simplex' },
+  { freq: '145.475', band: '2m', usage: 'FM Simplex' },
+  { freq: '145.500', band: '2m', usage: 'FM Calling' },
+  { freq: '145.525', band: '2m', usage: 'FM Simplex' },
+  { freq: '145.550', band: '2m', usage: 'FM Simplex' },
+  { freq: '145.575', band: '2m', usage: 'FM Simplex' },
+  { freq: '145.600', band: '2m', usage: 'FM Simplex' },
+  { freq: '145.625', band: '2m', usage: 'FM Simplex' },
+  { freq: '145.650', band: '2m', usage: 'FM Simplex' },
+  { freq: '145.675', band: '2m', usage: 'FM Simplex' },
+  { freq: '145.700', band: '2m', usage: 'FM Simplex' },
+  { freq: '145.725', band: '2m', usage: 'FM Simplex' },
+  { freq: '145.750', band: '2m', usage: 'FM Simplex' },
+  { freq: '145.775', band: '2m', usage: 'FM Simplex' },
+  { freq: '145.800', band: '2m', usage: 'FM Simplex' },
+  { freq: '145.825', band: '2m', usage: 'FM Simplex' },
+  { freq: '145.850', band: '2m', usage: 'FM Simplex' },
+  { freq: '145.875', band: '2m', usage: 'FM Simplex' },
+  { freq: '145.900', band: '2m', usage: 'FM Simplex' },
+  { freq: '145.925', band: '2m', usage: 'FM Simplex' },
+  { freq: '145.950', band: '2m', usage: 'FM Simplex' },
+  { freq: '145.975', band: '2m', usage: 'FM Simplex' },
+  
+  // 70cm Simplex (430 MHz)
+  { freq: '430.000', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.025', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.050', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.075', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.100', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.125', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.150', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.175', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.200', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.225', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.250', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.275', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.300', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.325', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.350', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.375', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.400', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.425', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.450', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.475', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.500', band: '70cm', usage: 'FM Calling' },
+  { freq: '430.525', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.550', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.575', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.600', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.625', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.650', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.675', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.700', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.725', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.750', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.775', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.800', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.825', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.850', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.875', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.900', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.925', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.950', band: '70cm', usage: 'FM Simplex' },
+  { freq: '430.975', band: '70cm', usage: 'FM Simplex' },
+  
+  // PMR 446 Analogue
+  { freq: '446.00625', band: 'PMR 446', usage: 'Analogue FM' },
+  { freq: '446.01875', band: 'PMR 446', usage: 'Analogue FM' },
+  { freq: '446.03125', band: 'PMR 446', usage: 'Analogue FM' },
+  { freq: '446.04375', band: 'PMR 446', usage: 'Analogue FM' },
+  { freq: '446.05625', band: 'PMR 446', usage: 'Analogue FM' },
+  { freq: '446.06875', band: 'PMR 446', usage: 'Analogue FM' },
+  { freq: '446.08125', band: 'PMR 446', usage: 'Analogue FM' },
+  { freq: '446.09375', band: 'PMR 446', usage: 'Analogue FM' },
+  { freq: '446.10625', band: 'PMR 446', usage: 'Analogue FM' },
+  { freq: '446.11875', band: 'PMR 446', usage: 'Analogue FM' },
+  { freq: '446.13125', band: 'PMR 446', usage: 'Analogue FM' },
+  { freq: '446.14375', band: 'PMR 446', usage: 'Analogue FM' },
+  { freq: '446.15625', band: 'PMR 446', usage: 'Analogue FM' },
+  { freq: '446.16875', band: 'PMR 446', usage: 'Analogue FM' },
+  { freq: '446.18125', band: 'PMR 446', usage: 'Analogue FM' },
+  { freq: '446.19375', band: 'PMR 446', usage: 'Analogue FM' },
+  
+  // PMR 446 Digital DMR
+  { freq: '446.103125', band: 'PMR 446', usage: 'Digital DMR' },
+  { freq: '446.115625', band: 'PMR 446', usage: 'Digital DMR' },
+  { freq: '446.128125', band: 'PMR 446', usage: 'Digital DMR' },
+  { freq: '446.140625', band: 'PMR 446', usage: 'Digital DMR' },
+  { freq: '446.153125', band: 'PMR 446', usage: 'Digital DMR' },
+  { freq: '446.165625', band: 'PMR 446', usage: 'Digital DMR' },
+  { freq: '446.178125', band: 'PMR 446', usage: 'Digital DMR' },
+  { freq: '446.190625', band: 'PMR 446', usage: 'Digital DMR' },
+  { freq: '446.109375', band: 'PMR 446', usage: 'Digital DMR' },
+  { freq: '446.121875', band: 'PMR 446', usage: 'Digital DMR' },
+  { freq: '446.134375', band: 'PMR 446', usage: 'Digital DMR' },
+  { freq: '446.146875', band: 'PMR 446', usage: 'Digital DMR' },
+  { freq: '446.159375', band: 'PMR 446', usage: 'Digital DMR' },
+  { freq: '446.171875', band: 'PMR 446', usage: 'Digital DMR' },
+  { freq: '446.184375', band: 'PMR 446', usage: 'Digital DMR' },
+  { freq: '446.196875', band: 'PMR 446', usage: 'Digital DMR' }
+];
+
+let simplexBandFilter = 'all';
+
+function renderSimplexFreqs() {
+  const tbody = document.getElementById('simplex-tbody');
+  let filtered = SIMPLEX_FREQS;
+  
+  if (simplexBandFilter === '2m') {
+    filtered = SIMPLEX_FREQS.filter(f => f.band === '2m');
+  } else if (simplexBandFilter === '70cm') {
+    filtered = SIMPLEX_FREQS.filter(f => f.band === '70cm');
+  } else if (simplexBandFilter === 'pmr') {
+    filtered = SIMPLEX_FREQS.filter(f => f.band === 'PMR 446');
+  }
+  
+  tbody.innerHTML = filtered.map(f => {
+    const bandColor = f.band === '2m' ? '#22c55e' : f.band === '70cm' ? '#3b82f6' : '#a855f7';
+    const isCalling = f.usage.includes('Calling');
+    const usageStyle = isCalling ? 'font-weight:600;color:#ef4444' : '';
+    return `<tr>
+      <td style="font-family:monospace;font-size:13px">${f.freq} MHz</td>
+      <td><span style="display:inline-block;padding:2px 8px;border-radius:4px;background:${bandColor};color:#fff;font-size:11px">${f.band}</span></td>
+      <td style="${usageStyle}">${f.usage}</td>
+    </tr>`;
+  }).join('');
+}
+
+function buildSimplexBandPills() {
+  const container = document.getElementById('simplex-band-pills');
+  if (!container) return;
+  
+  const bands = ['all', '2m', '70cm', 'pmr'];
+  const labels = { all: 'All', '2m': '2m (32)', '70cm': '70cm (40)', pmr: 'PMR 446 (32)' };
+  
+  container.innerHTML = bands.map(b => {
+    const isActive = simplexBandFilter === b;
+    return `<button class="mode-pill${isActive ? ' on' : ''}" onclick="setSimplexBandFilter('${b}')">${labels[b]}</button>`;
+  }).join('');
+}
+
+function setSimplexBandFilter(b) {
+  simplexBandFilter = b;
+  buildSimplexBandPills();
+  renderSimplexFreqs();
+}
 
 // PWA install prompt
 let deferredPrompt;
@@ -2660,6 +2965,7 @@ initNetFeedback();
 let spotData = [];
 let spotModeFilter = 'all';
 let spotMap = null, spotMarkers = null;
+let rptMap = null, rptMarkers = null;
 
 const MODE_COLORS = { ssb:'#3b82f6', cw:'#14b8a6', fm:'#22c55e', ft8:'#a855f7', ft4:'#eab308', dmr:'#ef4444', rst:'#f97316', rtty:'#f97316', psk:'#ec4899', other:'#6b7280' };
 
